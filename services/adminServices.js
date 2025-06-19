@@ -1,88 +1,123 @@
 import Admin from '../models/AdminModel.js';
-import User from '../models/AdminModel.js';
+import { getAdminDBConnection } from '../config/dbManager.js';
+import message from '../utils/message.js';
+import status from '../utils/statusCode.js';
+import { errorResponse } from '../utils/responseHelper.js';
 import bcrypt from 'bcrypt';
 
-export const createUserService = async (userData, admin) => {
-  const { name, email } = userData;
-  if (!name || !email) throw new Error('Name and Email are required');
-
-  const newUser = await User.create({ name, email, createdBy: admin._id });
-  await newUser.save();
-  return newUser;
-};
-
-export const getAllUsersService = async () => {
-  return await User.find().populate('createdBy', 'name email');
-};
-
-export const createAdmin = async (req) => {
-  const { name, email, password, mobileNo } = req.body;
-  if (!name || !email || !password || !mobileNo) {
-    throw new Error('All fields are required');
-  }
-
-  const isExist = await Admin.findOne({ email });
-  if (isExist) {
-    throw new Error('User already registered');
-  }
-  const hashPassword = await bcrypt.hash(password, 11);
-  const adminCreate = await Admin.create({
-    name,
-    email,
-    password: hashPassword,
-    mobileNo,
-  });
-  await adminCreate.save();
-  return adminCreate;
-};
-
-export const loginAdmin = async (req) => {
-  const { email, password, mobileNo } = req.body;
-
-  if (!email || !password || !mobileNo) {
-    throw new Error('All fields are required');
-  }
-
-  const isExist = await Admin.findOne({ email }).select('+password');
-  if (!isExist) {
-    throw new Error('User is not Exist');
-  }
-  const isMatch = await bcrypt.compare(password, isExist.password);
-
-  const token = gernreateWebToken({
-    _id: isMatch._id,
-    phone: isMatch.phone,
-    email: isMatch.email,
-    mobileNo,
-  });
-
-  const refreshToken = gernateRefreshTOken({
-    _id: isMatch._id,
-    phone: isMatch.phone,
-    mobileNo,
-    email: isMatch.email,
-  });
-  return refreshToken;
-};
-
-const gernreateWebToken = (data) => {
+export const createAdmin = async (req, res) => {
   try {
-    const token = jwt.sign(data, process.env.ACESS_TOKEN_PRIVATE_KEY, {
-      expiresIn: '1d',
+    const { userName, email, password, mobileNo } = req.body;
+    if (!userName || !email || !password || !mobileNo) {
+      if (res)
+        return errorResponse(res, status.BAD_REQUEST, message.MISSING_FIELDS);
+      throw new Error(message.MISSING_FIELDS);
+    }
+    const isExist = await Admin.findOne({ email });
+    if (isExist) {
+      if (res)
+        return errorResponse(
+          res,
+          status.BAD_REQUEST,
+          message.ALREADY_REGISTERED,
+        );
+      throw new Error(message.ALREADY_REGISTERED);
+    }
+    const hashPassword = await bcrypt.hash(password, 11);
+
+    const newAdmin = await Admin.create({
+      userName,
+      email,
+      password: hashPassword,
+      mobileNo,
     });
-    return token;
+    await getAdminDBConnection(newAdmin._id);
+    if (res) return res.status(status.SUCCESS).json(newAdmin);
+    return newAdmin;
   } catch (err) {
-    console.log(err.message);
+    if (res) return errorResponse(res, status.INTERNAL_ERROR, err.message);
+    throw err;
   }
 };
 
-const gernateRefreshTOken = (data) => {
-  try {
-    const token = jwt.sign(data, process.env.REFRESH_TOKEN_PRIVATE_KEY, {
-      expiresIn: '1y',
-    });
-    return token;
-  } catch (err) {
-    console.log(err.message);
-  }
+export const getAllAdmins = async () => {
+  return await Admin.find();
 };
+
+// export const loginAdmin = async (req) => {
+//   try {
+//     const { email, password, mobileNo } = req.body;
+
+//     if (!email || !password || !mobileNo) {
+//       return errorResponse(res, status.MISSING_FIELDS, message.MISSING_FIELDS);
+//     }
+
+//     const isExist = await Admin.findOne({ email }).select('+password');
+//     if (!isExist) {
+//       return errorResponse(res, status.NOT_FOUND, message.NOT_FOUND);
+//     }
+//     const isMatch = await bcrypt.compare(password, isExist.password);
+//     console.log(isExist);
+
+//     const token = gernreateWebToken({
+//       _id: isExist._id,
+//       phone: isExist.phone,
+//       email: isExist.email,
+//       mobileNo,
+//     });
+
+//     const refreshToken = gernateRefreshTOken({
+//       _id: isExist._id,
+//       phone: isExist.phone,
+//       mobileNo,
+//       email: isExist.email,
+//     });
+//     return { token };
+//   } catch (error) {
+//     return errorResponse(res, status.INTERNAL_ERROR, error.message);
+//   }
+// };
+
+// export const createUserService = async (userData, admin) => {
+//   const { userName, email, password, mobileNo } = userData;
+//   if (!userName || !email || !password || !mobileNo) {
+//     return errorResponse(res, status.BAD_REQUEST, message.MISSING_FIELDS);
+//   }
+//   const hashPassword = await bcrypt.hash(password, 10);
+//   const dbName = `user_${userName.toLowerCase()}`;
+//   const userConnection = await getAdminDBConnection(dbName);
+//   const User = UserModel(userConnection);
+//   const newUser = await User.create({
+//     userName,
+//     email,
+//     password: hashPassword,
+//     mobileNo,
+//     createdBy: admin,
+//   });
+//   return newUser;
+// };
+// export const getAllUsersService = async () => {
+//   return await UserModel.find().populate('createdBy', 'name email');
+// };
+
+// const gernreateWebToken = (data) => {
+//   try {
+//     const token = jwt.sign(data, process.env.ACESS_TOKEN_PRIVATE_KEY, {
+//       expiresIn: '1d',
+//     });
+//     return token;
+//   } catch (err) {
+//     console.log(err.message);
+//   }
+// };
+
+// const gernateRefreshTOken = (data) => {
+//   try {
+//     const token = jwt.sign(data, process.env.REFRESH_TOKEN_PRIVATE_KEY, {
+//       expiresIn: '1y',
+//     });
+//     return token;
+//   } catch (err) {
+//     console.log(err.message);
+//   }
+// };

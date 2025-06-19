@@ -1,18 +1,23 @@
 import express from 'express';
-import {
-  createUser,
-  getAllUsers,
-  AdminCreate,
-  AdminLogin,
-} from '../controllers/adminController.js';
-import { isAdmin } from '../middlewares/auth.js';
+// import {
+//   createUser,
+//   getAllUsers,
+//   AdminCreate,
+//   AdminLogin,
+//   listAdmins,
+// } from '../controllers/adminController.js';
+// import { isAdmin } from '../middlewares/auth.js';
+import { getUser, createUser } from '../controllers/userController.js';
+import { AdminCreate, listAdmins } from '../controllers/adminController.js';
 
 const routes = express.Router();
 
-routes.post('/admin/create-user', isAdmin, createUser);
-routes.get('/admin/users', isAdmin, getAllUsers);
+// admin create
+routes.post('/create', AdminCreate);
+routes.get('/', listAdmins);
 
-routes.post('/register', AdminCreate);
-routes.post('/login', AdminLogin);
+// create user
+routes.post('/:adminId/create', createUser);
+routes.get('/:adminId', getUser);
 
 export default routes;
