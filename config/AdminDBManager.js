@@ -2,9 +2,9 @@
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 
-const connections = {};
+const connections = {}; // ✅ MUST be defined outside the function
 
-export const getAdminDBConnection = async (adminId) => {
+export const loginUserConnectionBuild = async (adminId) => {
   if (connections[adminId]) {
     return connections[adminId];
   }
@@ -22,6 +22,7 @@ export const getAdminDBConnection = async (adminId) => {
 
   const dbName = `admin_${safeAdminId}`;
 
+  // ✅ Fix: Connect and wait for 'open'
   const checkConn = mongoose.createConnection(
     `${process.env.MONGO_URI_BASE}/admin?${process.env.MONGO_URI_OPTIONS}`,
     {
@@ -41,11 +42,17 @@ export const getAdminDBConnection = async (adminId) => {
 
   await checkConn.close();
 
+  const exists = dbs.databases.some((db) => db.name === dbName);
+  if (!exists) {
+    throw new Error(`Enter correct Id`);
+  }
+  // ✅ connect only if DB exists
   const uri = `${process.env.MONGO_URI_BASE}/${dbName}?${process.env.MONGO_URI_OPTIONS}`;
   const conn = mongoose.createConnection(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
+
   connections[adminId] = conn;
   return conn;
 };

@@ -18,6 +18,3 @@ const userSchema = new mongoose.Schema(
 export const UserModel = (connection) => {
   return connection.model('User', userSchema);
 };
-
-// const UserModel = (connection) => connection.model('User', userSchema);
-// export default UserModel;

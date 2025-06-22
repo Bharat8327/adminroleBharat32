@@ -6,5 +6,6 @@ export default {
   AUTH_TOKEN_REQUIRED: 'Authorization token are required',
   ALREADY_REGISTERED: 'User already registered',
   NOT_FOUND: 'User Not found',
-  
+  INVALID_CREDENTIALS: 'Invalid email password or Id',
+  LOGIN: 'login Successfully',
 };

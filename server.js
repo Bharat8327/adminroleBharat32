@@ -2,10 +2,9 @@ import dotenv from 'dotenv';
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
-import routes from './routes/adminRoute.js';
+import admin from './routes/adminRoute.js';
+import user from './routes/userRoute.js';
 import cookieParser from 'cookie-parser';
-import { successResponse } from './utils/responseHelper.js';
-import statusCode from './utils/statusCode.js';
 import { connectBaseDB } from './config/connectBaseDb.js';
 
 dotenv.config();
@@ -17,8 +16,10 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
+
 connectBaseDB();
-app.use('/admin', routes);
+app.use('/admin', admin);
+app.use('/user', user);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

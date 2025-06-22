@@ -19,6 +19,11 @@ const adminSchema = new mongoose.Schema(
       select: false,
       required: true,
     },
+    Id: {
+      type: String,
+      unique: true,
+      required: true,
+    },
   },
   { timestamps: true },
 );
