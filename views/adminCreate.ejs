@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: sans-serif;
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+      }
+      .btn {
+        padding: 10px 24px;
+        background: #6a11cb;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .btn:disabled {
+        background: #bdbdbd;
+        cursor: not-allowed;
+      }
+      .btn:hover:not(:disabled) {
+        background: #5311a8;
+      }
+
+      .form-box {
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+      }
+
+      h2 {
+        margin-bottom: 20px;
+        text-align: center;
+        color: #333;
+        font-size: 1.8rem;
+      }
+
+      label {
+        display: block;
+        margin-top: 12px;
+        font-weight: bold;
+        color: #444;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+
+      .password-wrapper {
+        position: relative;
+      }
+
+      .password-wrapper input {
+        width: 100%;
+        padding: 12px 40px 12px 14px;
+      }
+
+      .toggle-password {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #6a11cb;
+        font-weight: bold;
+        user-select: none;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px 14px;
+        margin-top: 6px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        outline-color: #6a11cb;
+        font-size: 1rem;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background: #6a11cb;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-top: 20px;
+        font-weight: bold;
+        font-size: 1rem;
+        transition: background 0.3s ease;
+      }
+
+      button:hover {
+        background: #4f0f9b;
+      }
+
+      .link {
+        text-align: center;
+        margin-top: 16px;
+        font-size: 0.95rem;
+      }
+
+      .link a {
+        color: #2575fc;
+        text-decoration: none;
+        font-weight: bold;
+      }
+
+      .link a:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 480px) {
+        .form-box {
+          padding: 20px;
+        }
+
+        h2 {
+          font-size: 1.4rem;
+        }
+
+        input,
+        button {
+          font-size: 0.9rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <form class="form-box" id="loginForm">
+      <h2>Create Admin</h2>
+
+      <label for="userName">UserName</label>
+      <input
+        type="text"
+        name="userName"
+        id="userName"
+        placeholder="Enter userName"
+        required
+      />
+      <label for="email">Email</label>
+      <input
+        type="email"
+        name="email"
+        id="email"
+        placeholder="Enter your email"
+        required
+      />
+      <label for="mobile">Mobile</label>
+      <div class="mobile-wrapper">
+        <input
+          type="tel"
+          name="mobile"
+          id="mobile"
+          placeholder="Enter mobile no..."
+          required
+          maxlength="10"
+        />
+      </div>
+
+      <label for="password">Password</label>
+      <div class="password-wrapper">
+        <input
+          type="password"
+          name="password"
+          id="password"
+          placeholder="Password"
+          required
+        />
+        <span class="toggle-password" onclick="togglePassword()">Show</span>
+      </div>
+
+      <label for="Id">Unique ID</label>
+      <input
+        type="text"
+        name="Id"
+        id="Id"
+        placeholder="ID"
+        minlength="3"
+        maxlength="6"
+        required
+      />
+
+      <button type="submit" class="btn" id="updateBtn">Create Account</button>
+
+      <div class="link">
+        <p>For Admin Login ⇒ <a href="/loginadmin">Admin login</a></p>
+      </div>
+    </form>
+
+    <script>
+      // Show/Hide Password
+      function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const toggleText = document.querySelector('.toggle-password');
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          toggleText.textContent = 'Hide';
+        } else {
+          passwordInput.type = 'password';
+          toggleText.textContent = 'Show';
+        }
+      }
+
+      // Handle Admin Create Submit
+      document
+        .getElementById('loginForm')
+        .addEventListener('submit', async function (e) {
+          e.preventDefault();
+          const form = e.target;
+          const userName = form.userName.value;
+          const email = form.email.value;
+          const mobile = form.mobile.value;
+          const password = form.password.value;
+          const Id = form.Id.value;
+
+          const submitBtn = document.getElementById('updateBtn');
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Creating...';
+
+          try {
+            const response = await axios.post('/admin/create', {
+              userName,
+              email,
+              mobileNo: mobile,
+              password,
+              Id,
+            });
+
+            if (response.data.success) {
+              alert('Admin created successfully!');
+              form.reset(); // clear inputs
+              window.location.href = '/loginadmin';
+            } else {
+              alert(response.data.message || 'Failed to create admin');
+            }
+          } catch (error) {
+            console.error('Creation Error:', error);
+
+            // Show Mongoose duplicate key error message or fallback
+            if (error.response && error.response.status === 409) {
+              alert(error.response.data.message); // from backend
+            } else if (error.response?.data?.message) {
+              alert(error.response.data.message);
+            } else {
+              alert('Something went wrong during account creation');
+            }
+          } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Account';
+          }
+        });
+    </script>
+  </body>
+</html>

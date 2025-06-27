@@ -4,7 +4,6 @@ import message from '../utils/message.js';
 import { errorResponse, successResponse } from '../utils/responseHelper.js';
 import bcrypt from 'bcrypt';
 import statusCode from '../utils/statusCode.js';
-import { AdminCreate } from '../controllers/adminController.js';
 
 export const createAdmin = async (req, res) => {
   try {
@@ -14,6 +13,7 @@ export const createAdmin = async (req, res) => {
       return errorResponse(res, statusCode.BAD_REQUEST, message.MISSING_FIELDS);
     }
 
+    // Check for existing email
     const isExist = await Admin.findOne({ email });
     if (isExist) {
       return errorResponse(
@@ -24,6 +24,7 @@ export const createAdmin = async (req, res) => {
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
+
     const newAdmin = await Admin.create({
       userName,
       email,
@@ -32,15 +33,21 @@ export const createAdmin = async (req, res) => {
       Id,
     });
 
-    // create dynamic database when Admin create
-    // const admindata = await AdminCreate(newAdmin._id);
-    // console.log('hello admindata', admindata);
-
     return successResponse(res, statusCode.CREATED, message.USER_CREATED, {
       userName,
       email,
     });
   } catch (err) {
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyValue)[0];
+      const value = err.keyValue[field];
+      return errorResponse(
+        res,
+        statusCode.CONFLICT,
+        `${field} already exists. Please choose another.`,
+      );
+    }
+
     return errorResponse(res, statusCode.INTERNAL_ERROR, err.message);
   }
 };

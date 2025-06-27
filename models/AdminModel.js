@@ -24,6 +24,31 @@ const adminSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
+    // reset Otp
+    verifyOtp: {
+      type: String,
+      default: '',
+      select: false,
+    },
+    resetOtpExpireAt: {
+      type: Number,
+      default: 0,
+    },
+    isAccountVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    // reset otp
+    resetOtp: {
+      type: String,
+      default: '',
+    },
+    resetOtpExpireAt: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
   },
   { timestamps: true },
 );

@@ -32,6 +32,7 @@ const isAdmin = async (req, res, next) => {
       throw new Error('Unauthorized User');
     }
   } catch (err) {
+
     return errorResponse(res, statusCode.BAD_REQUEST, err.message);
   }
   next();

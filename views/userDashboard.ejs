@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>User Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f4f6f9;
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+      }
+      .dashboard {
+        background: #fff;
+        padding: 30px;
+        margin-top: 100px;
+        border-radius: 12px;
+        max-width: 400px;
+        width: 100%;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      }
+      h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+      }
+      .info {
+        margin-bottom: 30px;
+        font-size: 1rem;
+        text-align: center;
+      }
+      .info strong {
+        color: #6a11cb;
+      }
+      .actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+      }
+      .btn {
+        padding: 10px 24px;
+        background: #6a11cb;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .btn:disabled {
+        background: #bdbdbd;
+        cursor: not-allowed;
+      }
+      .btn:hover:not(:disabled) {
+        background: #5311a8;
+      }
+      /* Modal styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 10;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: auto;
+        background: rgba(0, 0, 0, 0.2);
+        justify-content: center;
+        align-items: center;
+      }
+      .modal.active {
+        display: flex;
+      }
+      .modal-content {
+        background: #fff;
+        padding: 28px 24px 18px 24px;
+        border-radius: 10px;
+        min-width: 320px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        position: relative;
+      }
+      .close {
+        position: absolute;
+        right: 16px;
+        top: 12px;
+        font-size: 1.3rem;
+        color: #888;
+        cursor: pointer;
+        background: none;
+        border: none;
+      }
+      label {
+        font-weight: bold;
+        margin-top: 12px;
+        display: block;
+      }
+      .input-group {
+        position: relative;
+        margin-bottom: 18px;
+      }
+      input[type='password'],
+      input[type='text'] {
+        width: 100%;
+        padding: 10px 38px 10px 10px;
+        margin-top: 6px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 1rem;
+        outline-color: #6a11cb;
+      }
+      .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #6a11cb;
+        font-size: 1.1rem;
+        padding: 0 2px;
+      }
+      .success-message {
+        color: #219a52;
+        text-align: center;
+        margin-top: 18px;
+        font-weight: bold;
+        display: none;
+      }
+      @media (max-width: 480px) {
+        .dashboard {
+          padding: 18px;
+        }
+        .modal-content {
+          min-width: 90vw;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard">
+      <h2>User Dashboard</h2>
+      <div class="info">
+        <p><strong>Name:</strong> <span id="userName">Loading...</span></p>
+        <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
+      </div>
+      <div class="actions">
+        <button class="btn" id="openPasswordModal">Update Password</button>
+        <button class="btn" id="logoutBtn" style="background: #e53935">
+          Logout
+        </button>
+      </div>
+      <div class="success-message" id="successMsg">
+        Password updated successfully!
+      </div>
+    </div>
+
+    <!-- Password Modal -->
+    <div class="modal" id="passwordModal">
+      <div class="modal-content">
+        <button class="close" id="closeModal" title="Close">&times;</button>
+        <form id="passwordForm">
+          <label for="newPassword">New Password</label>
+          <div class="input-group">
+            <input
+              type="password"
+              id="newPassword"
+              placeholder="Enter new password"
+              required
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              data-target="newPassword"
+              tabindex="-1"
+            >
+              &#128065;
+            </button>
+          </div>
+          <label for="confirmPassword">Confirm Password</label>
+          <div class="input-group">
+            <input
+              type="password"
+              id="confirmPassword"
+              placeholder="Confirm new password"
+              required
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              data-target="confirmPassword"
+              tabindex="-1"
+            >
+              &#128065;
+            </button>
+          </div>
+          <button type="submit" class="btn" id="updateBtn">
+            Update Password
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Fetch user data from localStorage
+      const userName = localStorage.getItem('userName');
+      const email = localStorage.getItem('email');
+      const Id = localStorage.getItem('Id');
+      const token = localStorage.getItem('token');
+
+      // Display user info
+      document.getElementById('userName').textContent = userName || 'N/A';
+      document.getElementById('userEmail').textContent = email || 'N/A';
+
+      // Modal logic
+      const passwordModal = document.getElementById('passwordModal');
+      const openPasswordModal = document.getElementById('openPasswordModal');
+      const closeModal = document.getElementById('closeModal');
+      const passwordForm = document.getElementById('passwordForm');
+      const updateBtn = document.getElementById('updateBtn');
+      const successMsg = document.getElementById('successMsg');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      openPasswordModal.onclick = () => {
+        passwordModal.classList.add('active');
+        passwordForm.reset();
+        updateBtn.disabled = false;
+        successMsg.style.display = 'none';
+      };
+      closeModal.onclick = () => {
+        passwordModal.classList.remove('active');
+      };
+      window.onclick = (e) => {
+        if (e.target === passwordModal)
+          passwordModal.classList.remove('active');
+      };
+
+      // Show/hide password logic
+      document.querySelectorAll('.toggle-password').forEach((btn) => {
+        btn.addEventListener('click', function () {
+          const targetId = this.getAttribute('data-target');
+          const input = document.getElementById(targetId);
+          if (input.type === 'password') {
+            input.type = 'text';
+            this.innerHTML = '&#128064;';
+          } else {
+            input.type = 'password';
+            this.innerHTML = '&#128065;';
+          }
+        });
+      });
+
+      // Password update handler
+      passwordForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword =
+          document.getElementById('confirmPassword').value;
+
+        if (newPassword !== confirmPassword) {
+          alert('Passwords do not match!');
+          return;
+        }
+
+        updateBtn.disabled = true;
+        if (!token) {
+          alert('Invalid user redirect to login page');
+          window.location.href = '/login';
+          return;
+        }
+        try {
+          const response = await axios.post(
+            '/user/reset',
+            { password: newPassword },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            },
+          );
+          if (response.data.success) {
+            passwordModal.classList.remove('active');
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+              successMsg.style.display = 'none';
+            }, 2500);
+          } else {
+            alert(response.data.message || 'Failed to update password.');
+            updateBtn.disabled = false;
+          }
+        } catch (error) {
+          alert(
+            error.response?.data?.message ||
+              'An error occurred while updating password.',
+          );
+          updateBtn.disabled = false;
+        }
+      });
+
+      // Logout handler
+      logoutBtn.onclick = function () {
+        localStorage.clear();
+        window.location.href = '/login';
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+        background: linear-gradient(135deg, #2575fc, #6a11cb);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      .form-box {
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+        box-sizing: border-box;
+      }
+
+      h2 {
+        margin-bottom: 20px;
+        text-align: center;
+        color: #333;
+        font-size: 1.8rem;
+      }
+
+      label {
+        font-weight: bold;
+        font-size: 0.95rem;
+        display: block;
+        margin-top: 10px;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px 14px;
+        margin-top: 6px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        outline-color: #2575fc;
+        font-size: 1rem;
+        box-sizing: border-box;
+      }
+
+      .password-wrapper {
+        position: relative;
+      }
+
+      .toggle-password {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #2575fc;
+        font-weight: bold;
+        user-select: none;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background: #2575fc;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-top: 20px;
+        font-weight: bold;
+        font-size: 1rem;
+        transition: background 0.3s ease;
+      }
+
+      button:hover:not(:disabled) {
+        background: #1b59b8;
+      }
+
+      button:disabled {
+        background: #a0a0a0;
+        cursor: not-allowed;
+      }
+
+      .link {
+        text-align: center;
+        margin-top: 16px;
+        font-size: 0.95rem;
+      }
+
+      .link a {
+        color: #6a11cb;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .forgot-password {
+        text-align: end;
+        margin-top: 4px;
+        font-size: 0.9rem;
+      }
+
+      .forgot-password a {
+        color: #6a11cb;
+        text-decoration: none;
+      }
+
+      .forgot-password a:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 480px) {
+        h2 {
+          font-size: 1.5rem;
+        }
+
+        .form-box {
+          padding: 20px;
+        }
+
+        input,
+        button {
+          font-size: 0.95rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <form class="form-box" id="loginForm">
+      <h2>Admin Login</h2>
+
+      <label for="email">Email</label>
+      <input
+        type="email"
+        name="email"
+        id="email"
+        placeholder="Email"
+        required
+      />
+
+      <label for="password">Password</label>
+      <div class="password-wrapper">
+        <input
+          type="password"
+          name="password"
+          id="password"
+          placeholder="Password"
+          required
+        />
+        <span class="toggle-password" id="togglePassword">Show</span>
+      </div>
+      <p class="forgot-password">
+        <a href="/forgot">Forgot password?</a>
+      </p>
+      <button type="submit" id="loginBtn">Login</button>
+
+      <div class="link">
+        <p>
+          Don't have an account? <a href="/createaccount">Create Account</a>
+        </p>
+        <p>For User Login ⇒ <a href="/login">User Login</a></p>
+      </div>
+    </form>
+
+    <script type="module">
+      document
+        .getElementById('loginForm')
+        .addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          const form = e.target;
+          const email = form.email.value;
+          const password = form.password.value;
+          const loginBtn = document.getElementById('loginBtn');
+
+          // Disable button during API call
+          loginBtn.disabled = true;
+          loginBtn.textContent = 'Logging in...';
+
+          try {
+            const response = await axios.post('/admin/u/login', {
+              email,
+              password,
+            });
+
+            if (response.data.success) {
+              localStorage.setItem('token', response.data.data.token);
+              localStorage.setItem('email', response.data.data.user.email);
+              localStorage.setItem(
+                'userName',
+                response.data.data.user.userName,
+              );
+              localStorage.setItem('Id', response.data.data.user.id);
+              localStorage.setItem('AdminId', response.data.data.user.adminId);
+              window.location.href = '/dashboard';
+            } else {
+              alert(response.data.message || 'Login failed');
+            }
+          } catch (error) {
+            console.error('Login Error', error);
+            if (error.response?.data?.message) {
+              alert(error.response.data.message);
+            } else {
+              alert('Something went wrong. Please try again.');
+            }
+          } finally {
+            // Re-enable button
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Login';
+          }
+        });
+
+      // Show/Hide Password Toggle
+      function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const toggle = document.getElementById('togglePassword');
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        toggle.textContent = isPassword ? 'Hide' : 'Show';
+      }
+
+      document
+        .getElementById('togglePassword')
+        .addEventListener('click', togglePassword);
+    </script>
+  </body>
+</html>

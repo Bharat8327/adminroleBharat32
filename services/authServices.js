@@ -10,21 +10,22 @@ import Admin from '../models/AdminModel.js';
 
 export const loginUserService = async (req, res) => {
   const { email, password, Id } = req.body;
+
   if (!email || !password || !Id) {
     return errorResponse(res, statusCode.BAD_REQUEST, message.MISSING_FIELDS);
   }
 
   // Step 1: Find adminId from meta DB
   const adminId = Id;
+
   try {
     const conn = await loginUserConnectionBuild(adminId);
     const User = UserModel(conn);
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email }).select('+password');
     if (!existingUser || existingUser === null) {
       return errorResponse(res, statusCode.NOT_FOUND, message.NOT_FOUND);
     }
-
     const isMatch = await bcrypt.compare(password, existingUser.password);
     if (!isMatch) {
       return errorResponse(
@@ -40,6 +41,11 @@ export const loginUserService = async (req, res) => {
       adminId,
       email,
       Id,
+    });
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      maxAge: 15 * 60 * 1000,
     });
 
     return successResponse(res, statusCode.OK, message.LOGIN, {
@@ -82,6 +88,7 @@ export const loginAdminServices = async (req, res) => {
         id: existingUser._id,
         email: existingUser.email,
         userName: existingUser.userName,
+        adminId: existingUser.Id,
       },
     });
   } catch (error) {

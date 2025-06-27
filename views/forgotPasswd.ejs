@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Forgot Password</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: sans-serif;
+        background: linear-gradient(135deg, #2575fc, #6a11cb);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .form-box {
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+      }
+
+      h2 {
+        margin-bottom: 20px;
+        text-align: center;
+        color: #333;
+      }
+
+      label {
+        font-weight: bold;
+        display: block;
+        margin-top: 12px;
+        font-size: 0.95rem;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 10px 14px;
+        margin-top: 6px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 1rem;
+        outline-color: #2575fc;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background: #2575fc;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-top: 20px;
+        font-weight: bold;
+        font-size: 1rem;
+        transition: background 0.3s ease;
+      }
+
+      button[disabled] {
+        background-color: #999;
+        cursor: not-allowed;
+      }
+
+      button:hover:not([disabled]) {
+        background: #1b59b8;
+      }
+
+      .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 35px;
+        cursor: pointer;
+        color: #6a11cb;
+        font-size: 0.85rem;
+        user-select: none;
+      }
+
+      .password-wrapper {
+        position: relative;
+      }
+
+      @media (max-width: 480px) {
+        .form-box {
+          padding: 20px;
+        }
+
+        h2 {
+          font-size: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="form-box">
+      <h2>Forgot Password</h2>
+      <form id="forgotForm">
+        <label>User Type:</label>
+        <select id="userType" required>
+          <option value="">Select</option>
+          <option value="admin">Admin</option>
+          <option value="user">User</option>
+        </select>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" required />
+
+        <div id="idField" style="display: none">
+          <label for="Id">User ID</label>
+          <input type="text" id="Id" />
+        </div>
+
+        <button type="submit" id="sendOtpBtn">Send OTP</button>
+      </form>
+
+      <form id="otpForm" style="display: none">
+        <label for="otp">Enter OTP</label>
+        <input type="text" id="otp" required />
+        <button type="submit">Verify OTP</button>
+      </form>
+
+      <form id="passwordForm" style="display: none">
+        <label for="newPassword">New Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="newPassword" required />
+          <span class="toggle-password" onclick="togglePassword()">Show</span>
+        </div>
+        <button type="submit">Update Password</button>
+      </form>
+
+      <p style="text-align: center">Login page ⇒ <a href="/login">Login</a></p>
+    </div>
+
+    <script>
+      const forgotForm = document.getElementById('forgotForm');
+      const otpForm = document.getElementById('otpForm');
+      const passwordForm = document.getElementById('passwordForm');
+      const idField = document.getElementById('idField');
+      const idInput = document.getElementById('Id');
+      const sendOtpBtn = document.getElementById('sendOtpBtn');
+
+      document.getElementById('userType').addEventListener('change', (e) => {
+        const isUser = e.target.value === 'user';
+        idField.style.display = isUser ? 'block' : 'none';
+        if (isUser) {
+          idInput.setAttribute('required', 'required');
+        } else {
+          idInput.removeAttribute('required');
+        }
+      });
+
+      forgotForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const userType = document.getElementById('userType').value;
+        const email = document.getElementById('email').value;
+        const Id = document.getElementById('Id').value;
+
+        sendOtpBtn.disabled = true;
+        sendOtpBtn.textContent = 'Sending...';
+
+        try {
+          const payload = userType === 'user' ? { email, Id } : { email };
+          const endpoint =
+            userType === 'user' ? '/user/send/otp' : '/admin/forgotPasswd';
+          const res = await axios.post(endpoint, payload);
+          if (res.data.success) {
+            alert('OTP sent to your email');
+            forgotForm.style.display = 'none';
+            otpForm.style.display = 'block';
+          } else {
+            alert(res.data.message);
+          }
+        } catch (err) {
+          alert(err.response?.data?.message || 'Error sending OTP');
+        } finally {
+          sendOtpBtn.disabled = false;
+          sendOtpBtn.textContent = 'Send OTP';
+        }
+      });
+
+      otpForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const otp = document.getElementById('otp').value;
+        const email = document.getElementById('email').value;
+        const userType = document.getElementById('userType').value;
+        const Id = document.getElementById('Id').value;
+
+        try {
+          const endpoint =
+            userType === 'user' ? '/user/verify/otp' : '/admin/verify/otp';
+          const res = await axios.post(endpoint, { email, otp, Id });
+          if (res.data.success) {
+            alert('OTP verified');
+            otpForm.style.display = 'none';
+            passwordForm.style.display = 'block';
+          } else {
+            alert(res.data.message);
+          }
+        } catch (err) {
+          alert(err.response?.data?.message || 'OTP verification failed');
+        }
+      });
+
+      passwordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newPassword = document.getElementById('newPassword').value;
+        const email = document.getElementById('email').value;
+        const userType = document.getElementById('userType').value;
+        const otp = document.getElementById('otp').value;
+        const Id = document.getElementById('Id').value;
+
+        try {
+          const endpoint =
+            userType === 'user' ? '/user/update/pass' : '/admin/update';
+          const res = await axios.put(endpoint, {
+            email,
+            newPassword,
+            otp,
+            Id,
+          });
+          if (res.data.success) {
+            alert('Password updated successfully!');
+            window.location.href =
+              userType === 'user' ? '/login' : '/loginadmin';
+          } else {
+            alert(res.data.message);
+          }
+        } catch (err) {
+          alert(err.response?.data?.message || 'Failed to update password');
+        }
+      });
+
+      function togglePassword() {
+        const pwdInput = document.getElementById('newPassword');
+        const toggle = document.querySelector('.toggle-password');
+        if (pwdInput.type === 'password') {
+          pwdInput.type = 'text';
+          toggle.textContent = 'Hide';
+        } else {
+          pwdInput.type = 'password';
+          toggle.textContent = 'Show';
+        }
+      }
+    </script>
+  </body>
+</html>

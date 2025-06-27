@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: sans-serif;
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .form-box {
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+      }
+
+      h2 {
+        margin-bottom: 20px;
+        text-align: center;
+        color: #333;
+        font-size: 1.8rem;
+      }
+
+      label {
+        display: block;
+        margin-top: 12px;
+        font-weight: bold;
+        color: #444;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+
+      .password-wrapper {
+        position: relative;
+      }
+
+      .password-wrapper input {
+        width: 100%;
+        padding: 12px 40px 12px 14px;
+      }
+
+      .toggle-password {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #6a11cb;
+        font-weight: bold;
+        user-select: none;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px 14px;
+        margin-top: 6px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        outline-color: #6a11cb;
+        font-size: 1rem;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background: #6a11cb;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-top: 20px;
+        font-weight: bold;
+        font-size: 1rem;
+        transition: background 0.3s ease;
+      }
+
+      button:hover {
+        background: #4f0f9b;
+      }
+
+      .link {
+        text-align: center;
+        margin-top: 16px;
+        font-size: 0.95rem;
+      }
+
+      .link a {
+        color: #2575fc;
+        text-decoration: none;
+        font-weight: bold;
+      }
+
+      .link a:hover {
+        text-decoration: underline;
+      }
+
+      .forgot {
+        text-align: right;
+        margin-top: 6px;
+        font-size: 0.9rem;
+      }
+
+      .forgot a {
+        color: #6a11cb;
+        text-decoration: none;
+        font-weight: bold;
+      }
+
+      .forgot a:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 480px) {
+        .form-box {
+          padding: 20px;
+        }
+
+        h2 {
+          font-size: 1.4rem;
+        }
+
+        input,
+        button {
+          font-size: 0.9rem;
+        }
+
+        .link,
+        .forgot {
+          font-size: 0.85rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <form class="form-box" id="loginForm">
+      <h2>Employee Login</h2>
+
+      <label for="email">Email</label>
+      <input
+        type="email"
+        name="email"
+        id="email"
+        placeholder="Enter your email"
+        required
+      />
+
+      <label for="password">Password</label>
+      <div class="password-wrapper">
+        <input
+          type="password"
+          name="password"
+          id="password"
+          placeholder="Password"
+          required
+        />
+        <span class="toggle-password" onclick="togglePassword()">Show</span>
+      </div>
+
+      <div class="forgot">
+        <a href="/forgot">Forgot password?</a>
+      </div>
+
+      <label for="Id">Employee ID</label>
+      <input type="text" name="Id" id="Id" placeholder="ID" required />
+
+      <button type="submit">Login</button>
+
+      <div class="link">
+        <p>For Admin Login ⇒ <a href="/loginadmin">Admin Login</a></p>
+      </div>
+    </form>
+
+    <script>
+      // Show/Hide Password
+      function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const toggleText = document.querySelector('.toggle-password');
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          toggleText.textContent = 'Hide';
+        } else {
+          passwordInput.type = 'password';
+          toggleText.textContent = 'Show';
+        }
+      }
+
+      // Handle Login Submit
+      document
+        .getElementById('loginForm')
+        .addEventListener('submit', async function (e) {
+          e.preventDefault();
+          const form = e.target;
+          const email = form.email.value;
+          const password = form.password.value;
+          const Id = form.Id.value;
+
+          try {
+            const response = await axios.post('user/u/login', {
+              email,
+              password,
+              Id,
+            });
+
+            if (response.data.success) {
+              alert('Login successful!');
+              localStorage.setItem('token', response.data.data.token);
+              localStorage.setItem('id', response.data.data.user.id);
+              localStorage.setItem('email', response.data.data.user.email);
+              localStorage.setItem(
+                'userName',
+                response.data.data.user.userName,
+              );
+              window.location.href = '/u/dashboard';
+            } else {
+              alert(response.data.message || 'Login failed');
+            }
+          } catch (error) {
+            console.error('Login Error:', error);
+            if (error.response && error.response.data.message) {
+              alert(error.response.data.message);
+            } else {
+              alert('Something went wrong');
+            }
+          }
+        });
+    </script>
+  </body>
+</html>

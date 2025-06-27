@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f5f6fa;
+      }
+
+      header {
+        background-color: #6a11cb;
+        color: white;
+        padding: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      header h1 {
+        margin: 0;
+        font-size: 1.5rem;
+      }
+
+      .logout-btn {
+        background-color: #ff4d4d;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background-color 0.3s ease;
+      }
+
+      .logout-btn:hover {
+        background-color: #e63946;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: row;
+      }
+
+      nav {
+        width: 200px;
+        background-color: #333;
+        color: white;
+        height: 100vh;
+        padding-top: 20px;
+      }
+
+      nav a {
+        display: block;
+        color: white;
+        padding: 12px;
+        text-decoration: none;
+      }
+
+      nav a:hover {
+        background-color: #444;
+      }
+
+      .main {
+        flex-grow: 1;
+        padding: 20px;
+      }
+
+      .user-card {
+        background: white;
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .loader {
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #6a11cb;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 0.8s linear infinite;
+        margin: 10px auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          flex-direction: column;
+        }
+
+        nav {
+          width: 100%;
+          height: auto;
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-around;
+        }
+
+        nav a {
+          padding: 10px;
+          flex: 1;
+          text-align: center;
+        }
+
+        header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+
+        .logout-btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1 id="userName">Welcome, Admin</h1>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </header>
+
+    <div class="container">
+      <nav>
+        <a href="#" onclick="showDashboard()">Dashboard</a>
+        <a href="#" onclick="showCreateUser()">Create User</a>
+        <a href="#" onclick="showAllUsers()"> All Users</a>
+      </nav>
+
+      <div class="main" id="mainContent">
+        <h2>Dashboard</h2>
+        <p>Select an action from the menu.</p>
+      </div>
+    </div>
+
+    <script>
+      let users = [];
+      let total = localStorage.getItem('total');
+
+      function updateUserCount() {
+        const countElement = document.getElementById('userCount');
+        if (countElement) countElement.textContent = total;
+      }
+
+      function showDashboard() {
+        const email = localStorage.getItem('email');
+        const userName = localStorage.getItem('userName');
+        const adminId = localStorage.getItem('AdminId');
+        const total = users.length;
+        document.getElementById('userName').innerText = `welcome ${userName}`;
+        let html = `
+          <h2>Dashboard</h2>
+          <h3>Admin Details:</h3>
+          <div class="user-card">
+            <strong>Name:</strong> ${userName} <br>
+            <strong>Email:</strong> ${email} <br>
+            <strong>Admin ID:</strong> ${adminId}
+          </div>
+        `;
+
+        document.getElementById('mainContent').innerHTML = html;
+      }
+
+      function showCreateUser() {
+        document.getElementById('mainContent').innerHTML = `
+          <h2>Create User</h2>
+          <form onsubmit="createUser(event)">
+            <label>User Name:<br><input type="text" id="createUserName" required></label><br><br>
+            <label>Email:<br><input type="email" id="createEmail" required></label><br><br>
+            <label>Mobile No:<br><input type="text" id="createMobileNo" maxlength="10" required></label><br><br>
+            <button type="submit">Create User</button>
+          </form>
+        `;
+      }
+
+      const createUser = async (event) => {
+        event.preventDefault();
+
+        const userName = document.getElementById('createUserName').value;
+        const email = document.getElementById('createEmail').value;
+        const mobileNo = document.getElementById('createMobileNo').value;
+
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating...';
+
+        try {
+          const adminId = localStorage.getItem('Id');
+          const token = localStorage.getItem('token');
+
+          if (!adminId || !token) {
+            alert('Admin ID or token not found. Please login again.');
+            window.location.href = '/loginadmin';
+            return;
+          }
+
+          const response = await axios.post(
+            `/admin/${adminId}/create`,
+            { userName, email, mobileNo },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            },
+          );
+
+          if (response.data.success) {
+            updateUserCount();
+            alert('User created successfully!');
+            showAllUsers();
+          } else {
+            alert('Error creating user: ' + response.data.message);
+          }
+        } catch (error) {
+          if (error.response?.status === 409) {
+            alert('Error: ' + error.response.data.message);
+          } else if (error.response?.data?.message) {
+            alert('Error: ' + error.response.data.message);
+          } else {
+            alert('An unexpected error occurred while creating the user.');
+          }
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Create User';
+        }
+      };
+
+      const showAllUsers = async () => {
+        const mainContent = document.getElementById('mainContent');
+        mainContent.innerHTML = `<h2>All Users</h2><p>Loading users...</p><div class="loader"></div>`;
+
+        try {
+          const Id = localStorage.getItem('Id');
+          const token = localStorage.getItem('token');
+
+          if (!Id || !token) {
+            alert('Admin ID or token not found. Please login again.');
+            window.location.href = '/loginadmin';
+            return;
+          }
+
+          const response = await axios.get(`/admin/${Id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          users = response.data.data;
+          users.reverse();
+          localStorage.setItem('total', users.length);
+        } catch (error) {
+          mainContent.innerHTML = `<h2>All Users</h2><p>Error loading users.</p>`;
+          return;
+        }
+
+        let html = `<h2>All Users (${users.length})</h2>`;
+
+        if (users.length === 0) {
+          html += `<p>No users created yet.</p>`;
+        } else {
+          users.forEach((user, index) => {
+            html += `
+              <div class="user-card">
+                <strong>#${index + 1}</strong><br>
+                Name: ${user.userName}<br>
+                Email: ${user.email}<br>
+                Mobile: ${user.mobileNo}<br>
+              </div>
+            `;
+          });
+        }
+
+        mainContent.innerHTML = html;
+      };
+
+      function logout() {
+        localStorage.clear();
+        alert('You have been logged out.');
+        window.location.href = '/loginadmin';
+      }
+      updateUserCount();
+    </script>
+  </body>
+</html>
