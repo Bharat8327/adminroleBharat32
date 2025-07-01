@@ -2,7 +2,11 @@ import express from 'express';
 import { getUser, createUser } from '../controllers/userController.js';
 import { AdminCreate, listAdmins } from '../controllers/adminController.js';
 import authAdmin from '../middlewares/authAdmin.js';
-import { loginAdminController } from '../controllers/authController.js';
+import {
+  loginAdminController,
+  updateSmtpController,
+  verifySmtpController,
+} from '../controllers/authController.js';
 import {
   otpVerifyController,
   sendOtp,
@@ -14,6 +18,8 @@ const routes = express.Router();
 // admin create
 routes.post('/u/login', loginAdminController);
 routes.post('/create', AdminCreate);
+routes.put('/:id/smtp', authAdmin, updateSmtpController);
+routes.get('/:id/smtp', authAdmin, verifySmtpController);
 
 // create user
 routes.post('/:adminId/create', authAdmin, createUser);

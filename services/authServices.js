@@ -81,7 +81,11 @@ export const loginAdminServices = async (req, res) => {
       return errorResponse(res, statusCode.UNAUTHORIZED, 'Invalid credentials');
     }
     // Step 4: Generate JWT
-    const token = await generateToken({ email, _id: existingUser._id });
+    const token = await generateToken({
+      email,
+      _id: existingUser._id,
+      Id: existingUser.Id,
+    });
     return successResponse(res, statusCode.OK, message.LOGIN, {
       token,
       user: {
@@ -97,6 +101,59 @@ export const loginAdminServices = async (req, res) => {
       statusCode.INTERNAL_ERROR,
       statusCode.INTERNAL_ERROR,
     );
+  }
+};
+
+export const updateSmtpServices = async (req, res) => {
+  const { user, pass, host, port } = req.body;
+  try {
+    const admin = await Admin.findById(req.params.id);
+    if (!admin) {
+      return errorResponse(res, statusCode.NOT_FOUND, message.NOT_FOUND);
+    }
+
+    // Update smtp fields
+    if (user !== undefined) admin.smtp.user = user;
+    if (pass !== undefined) admin.smtp.pass = pass;
+    if (host !== undefined) admin.smtp.host = host;
+    if (port !== undefined) admin.smtp.port = port;
+
+    await admin.save();
+
+    return successResponse(
+      res,
+      statusCode.OK,
+      'SMTP details updated successfully',
+      {
+        smtp: {
+          host: admin.smtp.host,
+          port: admin.smtp.port,
+          user: admin.smtp.user,
+        },
+      },
+    );
+  } catch (error) {
+    return errorResponse(res, statusCode.INTERNAL_ERROR, error.message);
+  }
+};
+
+export const verifySmtpServices = async (req, res) => {
+  try {
+    console.log('comes');
+
+    const admin = await Admin.findById(req.params.id);
+    if (!admin) {
+      return errorResponse(res, statusCode.NOT_FOUND, message.NOT_FOUND);
+    }
+
+    const { host, port, user } = admin.smtp;
+    if (host && port && user) {
+      return res.json({ valid: true });
+    } else {
+      return res.json({ valid: false });
+    }
+  } catch (error) {
+    return errorResponse(res, statusCode.INTERNAL_ERROR, error.message);
   }
 };
 

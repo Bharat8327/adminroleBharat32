@@ -6,9 +6,9 @@ import statusCode from '../utils/statusCode.js';
 import message from '../utils/message.js';
 import Admin from '../models/AdminModel.js';
 import { USER_CREATED_TEMPLATE } from '../config/emailTemplate.js';
-import transporter from '../config/nodeMailer.js';
+import nodemailer from 'nodemailer';
 
-export const createUserForAdmin = async (adminId, req, res) => {
+export const createUserForAdmin = async (req, res) => {
   try {
     const { email, userName, mobileNo } = req.body;
 
@@ -17,19 +17,22 @@ export const createUserForAdmin = async (adminId, req, res) => {
       return errorResponse(res, statusCode.BAD_REQUEST, message.MISSING_FIELDS);
     }
 
-    const currentYear = new Date().getFullYear(); // e.g., 2025
+    const currentYear = new Date().getFullYear();
     const formattedName =
       userName[0].toUpperCase() + userName.slice(1).toLowerCase();
 
     const password = `${formattedName}@${currentYear}`;
 
     // 1. Get correct admin DB
-    const isExist = await Admin.findById(adminId);
+    const isExist = await Admin.findById(req.params.adminId).select(
+      '+smtp.pass',
+    );
+
     if (!isExist) {
       return errorResponse(res, statusCode.NOT_FOUND, message.NOT_FOUND);
     }
 
-    const conn = await getAdminDBConnection(req.admin.Id);
+    const conn = await getAdminDBConnection(isExist.Id);
     const User = UserModel(conn);
 
     // 2. Check if user already exists in admin's DB
@@ -51,24 +54,58 @@ export const createUserForAdmin = async (adminId, req, res) => {
       mobileNo,
     });
 
+    let transport = nodemailer.createTransport({
+      host: isExist.smtp.host,
+      port: isExist.smtp.port,
+      auth: {
+        user: isExist.smtp.user,
+        pass: isExist.smtp.pass,
+      },
+    });
+
     const mailOption = {
-      from: `"Patell" <${process.env.SENDER_EMAIL}>`,
+      from: `"Patell" <${isExist.smtp.user}>`,
       to: email,
-      subject: 'Account Created Successfully',
+      subject: `Account Created Successfully by ${isExist.userName}`,
       html: USER_CREATED_TEMPLATE.replace('{{username}}', userName)
         .replace('{{email}}', email)
         .replace('{{password}}', password)
         .replace('{{loginLink}}', 'https://yourdomain.com/login')
-        .replace('{{id}}', req.admin.Id), // Add this line to replace {{id}} in the template
+        .replace('{{id}}', isExist.Id),
     };
-    const create = await transporter.sendMail(mailOption);
-    return newUser;
+
+    try {
+      await transport.sendMail(mailOption);
+    } catch (mailErr) {
+      // Check for invalid login error
+      if (
+        mailErr &&
+        mailErr.message &&
+        mailErr.message.includes('Invalid login')
+      ) {
+        // Send error response with suggestion to update SMTP credentials
+        return errorResponse(
+          res,
+          statusCode.UNAUTHORIZED,
+          'Invalid SMTP credentials. Please update your SMTP email and password in the admin settings.',
+        );
+      }
+      // Other email errors
+      return errorResponse(
+        res,
+        statusCode.INTERNAL_ERROR,
+        `Failed to send email: ${mailErr.message}`,
+      );
+    }
+
+    return successResponse(res, statusCode.CREATED, message.CREATED, newUser);
   } catch (err) {
     return errorResponse(res, statusCode.INTERNAL_ERROR, err.message);
   }
 };
 
 export const getAllUsersForAdmin = async (adminId) => {
+
   const conn = await getAdminDBConnection(adminId);
   const User = UserModel(conn);
   const users = await User.find();

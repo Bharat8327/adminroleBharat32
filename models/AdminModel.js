@@ -49,6 +49,12 @@ const adminSchema = new mongoose.Schema(
       default: 0,
       select: false,
     },
+    smtp: {
+      host: { type: String, default: 'smtp.gmail.com' },
+      port: { type: Number, default: 465 },
+      user: { type: String },
+      pass: { type: String, select: false },
+    },
   },
   { timestamps: true },
 );

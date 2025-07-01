@@ -31,7 +31,7 @@ export const otpServices = async (req, res) => {
         const mailOption = {
           from: `"Patell" <${process.env.SENDER_EMAIL}>`,
           to: email,
-          subject: 'Account Created Successfully',
+          subject: 'Password Reset Request – One-Time Password (OTP)',
           html: OTP_EMAIL_TEMPLATE.replace('{{otp}}', otp).replace(
             '{{supportLink}}',
             'http://localhost:4000/login',

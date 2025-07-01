@@ -7,12 +7,13 @@ import statusCode from '../utils/statusCode.js';
 
 export const createAdmin = async (req, res) => {
   try {
-    const { userName, email, password, mobileNo, Id } = req.body;
+    const { userName, email, password, mobileNo } = req.body;
 
-    if (!userName || !email || !password || !mobileNo || !Id) {
+    if (!userName || !email || !password || !mobileNo) {
       return errorResponse(res, statusCode.BAD_REQUEST, message.MISSING_FIELDS);
     }
-
+    const Id = email.split('@')[0];
+    console.log(Id);
     // Check for existing email
     const isExist = await Admin.findOne({ email });
     if (isExist) {
@@ -52,7 +53,6 @@ export const createAdmin = async (req, res) => {
   }
 };
 
-// get all admins
 export const getAllAdmins = async () => {
   return await Admin.find();
 };

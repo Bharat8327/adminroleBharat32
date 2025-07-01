@@ -14,4 +14,6 @@ export default {
   OTP_VERIFY: 'OTP Verify Seccessfully',
   INVALID_OTP: 'Invalid or expired OTP',
   PASSWORD: 'New password must be different from the old password',
+  GEMINAI: 'created successfully',
+  SUCCESSFULLY: 'Send successfully',
 };

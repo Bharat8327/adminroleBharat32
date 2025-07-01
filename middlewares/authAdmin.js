@@ -19,6 +19,7 @@ const isAdmin = async (req, res, next) => {
   const token = req.headers.authorization.split(' ')[1];
   try {
     const decode = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('decode the code', decode);
     if (!decode) {
       return errorResponse(
         res,
@@ -27,14 +28,11 @@ const isAdmin = async (req, res, next) => {
       );
     }
 
-    req.admin = await Admin.findById(decode._id);
-    if (req.admin === null || !req.admin) {
-      throw new Error('Unauthorized User');
-    }
+    req.user = decode.Id;
   } catch (err) {
-
     return errorResponse(res, statusCode.BAD_REQUEST, err.message);
   }
+
   next();
 };
 export default isAdmin;

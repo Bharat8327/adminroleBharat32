@@ -32,10 +32,13 @@ const authUser = async (req, res, next) => {
     const conn = await getAdminDBConnection(decode.Id);
     const User = UserModel(conn);
 
-    req.user = await User.findOne({ email: decode.email }).select('+password');
+    req.user = await User.findOne({ email: decode.email }).select(
+      '+password +smtp.pass',
+    );
     if (req.user === null || !req.user) {
       throw new Error('Unauthorized User');
     }
+
     req.adminId = decode.Id;
   } catch (error) {
     return errorResponse(res, statusCode.BAD_REQUEST, error.message);

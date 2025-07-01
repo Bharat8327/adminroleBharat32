@@ -29,8 +29,7 @@ console.log(__filename, '  ', __dirname);
 // Setup EJS views
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
-console.log('bharat', path.join(__dirname, 'views'));
+app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.get('/', (req, res) => res.render('index'));
@@ -40,6 +39,7 @@ app.get('/dashboard', (req, res) => res.render('adminDashboard'));
 app.get('/u/dashboard', (req, res) => res.render('userDashboard'));
 app.get('/createaccount', (req, res) => res.render('adminCreate'));
 app.get('/forgot', (req, res) => res.render('forgotPasswd'));
+app.get('/email-history', (req, res) => res.render('email_history'));
 
 // DB + Routers
 connectBaseDB();

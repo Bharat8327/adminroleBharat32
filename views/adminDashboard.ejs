@@ -6,80 +6,191 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
+      /* Modern UI Styling */
       body {
         margin: 0;
-        font-family: Arial, sans-serif;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background: #f5f6fa;
       }
-
       header {
-        background-color: #6a11cb;
-        color: white;
-        padding: 1rem;
+        background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+        color: #fff;
+        padding: 1.2rem 2rem;
         display: flex;
-        flex-wrap: wrap;
         justify-content: space-between;
         align-items: center;
+        box-shadow: 0 2px 8px rgba(106, 17, 203, 0.08);
       }
-
       header h1 {
         margin: 0;
-        font-size: 1.5rem;
+        font-size: 2rem;
+        letter-spacing: 1px;
       }
-
       .logout-btn {
-        background-color: #ff4d4d;
+        background: #ff4d4d;
         color: white;
         border: none;
-        padding: 8px 16px;
-        border-radius: 5px;
+        padding: 10px 22px;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 1rem;
-        transition: background-color 0.3s ease;
+        font-size: 1.1rem;
+        font-weight: 500;
+        transition: background-color 0.3s;
       }
-
       .logout-btn:hover {
-        background-color: #e63946;
+        background: #e63946;
       }
-
       .container {
         display: flex;
-        flex-direction: row;
+        min-height: 90vh;
       }
-
       nav {
-        width: 200px;
-        background-color: #333;
-        color: white;
-        height: 100vh;
-        padding-top: 20px;
+        width: 220px;
+        background: #232946;
+        color: #fff;
+        padding-top: 30px;
+        box-shadow: 2px 0 8px rgba(35, 41, 70, 0.06);
       }
-
       nav a {
         display: block;
-        color: white;
-        padding: 12px;
+        color: #fff;
+        padding: 16px 28px;
         text-decoration: none;
+        font-size: 1.1rem;
+        border-left: 4px solid transparent;
+        transition: background 0.2s, border-color 0.2s;
       }
-
       nav a:hover {
-        background-color: #444;
+        background: #2d3250;
+        border-left: 4px solid #6a11cb;
       }
-
       .main {
         flex-grow: 1;
-        padding: 20px;
+        padding: 40px 5vw;
+        background: #f5f6fa;
       }
-
+      .dashboard-cards {
+        display: flex;
+        gap: 32px;
+        flex-wrap: wrap;
+        margin-bottom: 32px;
+      }
       .user-card {
-        background: white;
-        border: 1px solid #ddd;
-        padding: 15px;
-        border-radius: 8px;
-        margin: 10px 0;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(106, 17, 203, 0.07);
+        padding: 28px 32px;
+        min-width: 320px;
+        flex: 1;
+        margin-bottom: 20px;
+        transition: box-shadow 0.2s;
       }
-
+      .user-card strong {
+        color: #6a11cb;
+        font-size: 1.1rem;
+      }
+      .user-details-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .user-details-list li {
+        margin-bottom: 10px;
+        font-size: 1.08rem;
+      }
+      .form-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(106, 17, 203, 0.07);
+        padding: 28px 32px;
+        margin-bottom: 32px;
+        max-width: 420px;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      label {
+        font-weight: 600;
+        color: #232946;
+      }
+      input {
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+      }
+      input:focus {
+        border-color: #6a11cb;
+        outline: none;
+      }
+      button {
+        padding: 12px 0;
+        background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: background 0.3s;
+      }
+      button:hover {
+        background: linear-gradient(90deg, #4c0e9c 0%, #1b4e9b 100%);
+      }
+      .smtp-section {
+        display: flex;
+        gap: 32px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+      .smtp-form,
+      .smtp-video {
+        flex: 1;
+        min-width: 320px;
+      }
+      .smtp-video iframe {
+        width: 100%;
+        height: 300px;
+        border: none;
+        border-radius: 12px;
+      }
+      .success-msg {
+        color: #219653;
+        font-weight: bold;
+        margin-top: 10px;
+        display: none;
+      }
+      .error-msg {
+        color: #e53935;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+      .update-smtp-btn,
+      .cancel-smtp-btn {
+        margin-top: 18px;
+        background: #fff;
+        color: #6a11cb;
+        border: 2px solid #6a11cb;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+      }
+      .update-smtp-btn:hover,
+      .cancel-smtp-btn:hover {
+        background: #6a11cb;
+        color: #fff;
+      }
       .loader {
         border: 6px solid #f3f3f3;
         border-top: 6px solid #6a11cb;
@@ -89,7 +200,6 @@
         animation: spin 0.8s linear infinite;
         margin: 10px auto;
       }
-
       @keyframes spin {
         0% {
           transform: rotate(0deg);
@@ -98,12 +208,20 @@
           transform: rotate(360deg);
         }
       }
-
+      @media (max-width: 900px) {
+        .dashboard-cards,
+        .smtp-section {
+          flex-direction: column;
+          gap: 18px;
+        }
+        .main {
+          padding: 24px 2vw;
+        }
+      }
       @media (max-width: 768px) {
         .container {
           flex-direction: column;
         }
-
         nav {
           width: 100%;
           height: auto;
@@ -111,22 +229,44 @@
           flex-wrap: wrap;
           justify-content: space-around;
         }
-
         nav a {
-          padding: 10px;
           flex: 1;
           text-align: center;
         }
-
-        header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 10px;
-        }
-
-        .logout-btn {
-          width: 100%;
-        }
+      }
+      .notification {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        min-width: 260px;
+        max-width: 350px;
+        z-index: 9999;
+        background: #fff;
+        color: #232946;
+        border-radius: 10px;
+        box-shadow: 0 4px 16px rgba(35, 41, 70, 0.13);
+        padding: 18px 24px;
+        font-size: 1.08rem;
+        font-weight: 500;
+        display: none;
+        align-items: center;
+        gap: 10px;
+        border-left: 6px solid #6a11cb;
+        transition: opacity 0.3s;
+      }
+      .notification.success {
+        border-left-color: #219653;
+      }
+      .notification.error {
+        border-left-color: #e53935;
+      }
+      .notification .close-btn {
+        background: none;
+        border: none;
+        color: #888;
+        font-size: 1.2rem;
+        cursor: pointer;
+        margin-left: auto;
       }
     </style>
   </head>
@@ -135,168 +275,297 @@
       <h1 id="userName">Welcome, Admin</h1>
       <button class="logout-btn" onclick="logout()">Logout</button>
     </header>
-
     <div class="container">
-      <nav>
-        <a href="#" onclick="showDashboard()">Dashboard</a>
-        <a href="#" onclick="showCreateUser()">Create User</a>
-        <a href="#" onclick="showAllUsers()"> All Users</a>
+      <nav id="sidebarMenu">
+        <!-- Menu will be rendered dynamically -->
       </nav>
-
       <div class="main" id="mainContent">
         <h2>Dashboard</h2>
         <p>Select an action from the menu.</p>
       </div>
     </div>
+    <div id="toast" class="notification"></div>
 
     <script>
       let users = [];
-      let total = localStorage.getItem('total');
+      let smtpValid = false;
+      let showSmtpForm = false;
 
-      function updateUserCount() {
-        const countElement = document.getElementById('userCount');
-        if (countElement) countElement.textContent = total;
+      function showToast(message, type = 'success', duration = 3000) {
+        const toast = document.getElementById('toast');
+        toast.className = `notification ${type}`;
+        toast.innerHTML = `
+          <span>${message}</span>
+          <button class="close-btn" onclick="hideToast()">&times;</button>
+        `;
+        toast.style.display = 'flex';
+        toast.style.opacity = '1';
+        if (toast.toastTimeout) clearTimeout(toast.toastTimeout);
+        toast.toastTimeout = setTimeout(hideToast, duration);
+      }
+
+      function hideToast() {
+        const toast = document.getElementById('toast');
+        toast.style.opacity = '0';
+        setTimeout(() => {
+          toast.style.display = 'none';
+        }, 300);
+      }
+
+      function logout() {
+        localStorage.clear();
+        showToast('Logged out successfully.', 'success');
+        setTimeout(() => {
+          window.location.href = '/loginadmin';
+        }, 1200);
+      }
+
+      async function checkSMTP() {
+        try {
+          const res = await axios.get(
+            `/admin/${localStorage.getItem('Id')}/smtp`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+              },
+            },
+          );
+          smtpValid = res.data.valid;
+        } catch {
+          smtpValid = false;
+        }
+      }
+
+      function updateSidebarMenu() {
+        const nav = document.getElementById('sidebarMenu');
+        let links = `
+          <a href="#" onclick="showDashboard()">Dashboard</a>
+        `;
+        if (smtpValid) {
+          links += `<a href="#" onclick="showCreateUser()">Create User</a>`;
+        }
+        links += `<a href="#" onclick="showAllUsers()">All Users</a>`;
+        nav.innerHTML = links;
       }
 
       function showDashboard() {
-        const email = localStorage.getItem('email');
         const userName = localStorage.getItem('userName');
+        const email = localStorage.getItem('email');
+        const Id = localStorage.getItem('Id');
         const adminId = localStorage.getItem('AdminId');
-        const total = users.length;
-        document.getElementById('userName').innerText = `welcome ${userName}`;
-        let html = `
+        document.getElementById('userName').innerText = `Welcome, ${userName}`;
+        document.getElementById('mainContent').innerHTML = `
           <h2>Dashboard</h2>
-          <h3>Admin Details:</h3>
-          <div class="user-card">
-            <strong>Name:</strong> ${userName} <br>
-            <strong>Email:</strong> ${email} <br>
-            <strong>Admin ID:</strong> ${adminId}
+          <div class="dashboard-cards">
+            <div class="user-card">
+              <strong>Admin Details</strong>
+              <ul class="user-details-list">
+                <li><b>Name:</b> ${userName}</li>
+                <li><b>Email:</b> ${email}</li>
+                <li><b>Admin ID:</b> ${adminId}</li>
+              </ul>
+              <div id="smtpStatusSection"></div>
+            </div>
           </div>
         `;
+        renderSmtpStatusSection();
+      }
 
-        document.getElementById('mainContent').innerHTML = html;
+      function renderSmtpStatusSection() {
+        const section = document.getElementById('smtpStatusSection');
+        if (!smtpValid || showSmtpForm) {
+          section.innerHTML = `
+            <div class="smtp-section">
+              <div class="smtp-form form-card">
+                <h3>${smtpValid ? 'Update SMTP Credentials' : 'Setup SMTP'}</h3>
+                <form id="smtpSetupForm">
+                  <div class="form-group"><label>SMTP Host</label><input type="text" id="smtpHost" value="smtp.gmail.com" required></div>
+                  <div class="form-group"><label>Port</label><input type="text" id="smtpPort" value="465" required></div>
+                  <div class="form-group"><label>Email</label><input type="email" id="smtpUser" required></div>
+                  <div class="form-group"><label>SMTP Password</label><input type="password" id="smtpPass" placeholder="ex: xosa iurj uehe uwgd" required ></div>
+                  <button type="submit">${
+                    smtpValid ? 'Update SMTP' : 'Save SMTP'
+                  }</button>
+                  <div class="success-msg" id="smtpSetupSuccess">SMTP saved successfully!</div>
+                  <div class="error-msg" id="smtpSetupError"></div>
+                </form>
+                ${
+                  smtpValid
+                    ? `<button class="cancel-smtp-btn" onclick="cancelSmtpUpdate()">Cancel</button>`
+                    : ''
+                }
+              </div>
+              <div class="smtp-video form-card">
+                <strong>Need Help? Watch this video to learn how to generate an SMTP app password</strong>
+                <iframe src="https://www.youtube-nocookie.com/embed/ZfEK3WP73eY"></iframe>
+              </div>
+            </div>
+          `;
+          document.getElementById('smtpSetupForm').onsubmit = handleSMTPSubmit;
+        } else {
+          section.innerHTML = `
+            <div style="margin-top:18px;">
+              <span style="color:#219653;font-weight:600;">SMTP Verified</span>
+              <button class="update-smtp-btn" onclick="showSmtpUpdateForm()">Update SMTP Credentials</button>
+            </div>
+          `;
+        }
+      }
+
+      function showSmtpUpdateForm() {
+        showSmtpForm = true;
+        renderSmtpStatusSection();
+      }
+
+      function cancelSmtpUpdate() {
+        showSmtpForm = false;
+        renderSmtpStatusSection();
       }
 
       function showCreateUser() {
+        if (!smtpValid) {
+          showToast('Please setup SMTP first.', 'error');
+          return;
+        }
         document.getElementById('mainContent').innerHTML = `
-          <h2>Create User</h2>
-          <form onsubmit="createUser(event)">
-            <label>User Name:<br><input type="text" id="createUserName" required></label><br><br>
-            <label>Email:<br><input type="email" id="createEmail" required></label><br><br>
-            <label>Mobile No:<br><input type="text" id="createMobileNo" maxlength="10" required></label><br><br>
-            <button type="submit">Create User</button>
-          </form>
+          <div class="form-card">
+            <h2>Create User</h2>
+            <form onsubmit="createUser(event)">
+              <div class="form-group"><label>User Name</label><input type="text" id="createUserName" required></div>
+              <div class="form-group"><label>Email</label><input type="email" id="createEmail" required></div>
+              <div class="form-group"><label>Mobile No</label><input type="text" id="createMobileNo" maxlength="10" required></div>
+              <button type="submit">Create User</button>
+            </form>
+          </div>
         `;
       }
 
-      const createUser = async (event) => {
-        event.preventDefault();
-
-        const userName = document.getElementById('createUserName').value;
-        const email = document.getElementById('createEmail').value;
-        const mobileNo = document.getElementById('createMobileNo').value;
-
-        const submitBtn = event.target.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Creating...';
-
+      async function handleSMTPSubmit(e) {
+        e.preventDefault();
+        const button = e.target.querySelector('button[type="submit"]');
+        button.disabled = true;
         try {
-          const adminId = localStorage.getItem('Id');
-          const token = localStorage.getItem('token');
-
-          if (!adminId || !token) {
-            alert('Admin ID or token not found. Please login again.');
-            window.location.href = '/loginadmin';
-            return;
-          }
-
-          const response = await axios.post(
-            `/admin/${adminId}/create`,
-            { userName, email, mobileNo },
+          const res = await axios.put(
+            `/admin/${localStorage.getItem('Id')}/smtp`,
+            {
+              host: document.getElementById('smtpHost').value,
+              port: document.getElementById('smtpPort').value,
+              user: document.getElementById('smtpUser').value,
+              pass: document.getElementById('smtpPass').value,
+            },
             {
               headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
                 'Content-Type': 'application/json',
               },
             },
           );
+          if (res.data.success) {
+            smtpValid = true;
+            showSmtpForm = false;
+            document.getElementById('smtpSetupSuccess').style.display = 'block';
+            showToast('SMTP saved successfully!', 'success');
+            updateSidebarMenu();
+            setTimeout(showDashboard, 1200);
+          } else {
+            document.getElementById('smtpSetupError').innerText =
+              res.data.message || 'SMTP setup failed.';
+            showToast(res.data.message || 'SMTP setup failed.', 'error');
+          }
+        } catch (error) {
+          document.getElementById('smtpSetupError').innerText =
+            error.response?.data?.message || 'An error occurred.';
+          showToast(
+            error.response?.data?.message || 'An error occurred.',
+            'error',
+          );
+        } finally {
+          button.disabled = false;
+        }
+      }
 
-          if (response.data.success) {
-            updateUserCount();
-            alert('User created successfully!');
+      async function createUser(e) {
+        e.preventDefault();
+        const button = e.target.querySelector('button[type="submit"]');
+        button.disabled = true;
+        button.textContent = 'Creating...';
+        try {
+          const res = await axios.post(
+            `/admin/${localStorage.getItem('Id')}/create`,
+            {
+              userName: document.getElementById('createUserName').value,
+              email: document.getElementById('createEmail').value,
+              mobileNo: document.getElementById('createMobileNo').value,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json',
+              },
+            },
+          );
+          if (res.data.success) {
+            showToast('User created successfully!', 'success');
             showAllUsers();
           } else {
-            alert('Error creating user: ' + response.data.message);
+            showToast(res.data.message || 'Failed to create user', 'error');
           }
         } catch (error) {
-          if (error.response?.status === 409) {
-            alert('Error: ' + error.response.data.message);
-          } else if (error.response?.data?.message) {
-            alert('Error: ' + error.response.data.message);
-          } else {
-            alert('An unexpected error occurred while creating the user.');
-          }
+          showToast(
+            'Error: ' +
+              (error.response?.data?.message || 'Something went wrong'),
+            'error',
+          );
         } finally {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Create User';
+          button.disabled = false;
+          button.textContent = 'Create User';
         }
-      };
+      }
 
-      const showAllUsers = async () => {
+      async function showAllUsers() {
         const mainContent = document.getElementById('mainContent');
-        mainContent.innerHTML = `<h2>All Users</h2><p>Loading users...</p><div class="loader"></div>`;
-
+        mainContent.innerHTML = `<h2>All Users</h2><div class="loader"></div>`;
         try {
-          const Id = localStorage.getItem('Id');
-          const token = localStorage.getItem('token');
-
-          if (!Id || !token) {
-            alert('Admin ID or token not found. Please login again.');
-            window.location.href = '/loginadmin';
-            return;
-          }
-
-          const response = await axios.get(`/admin/${Id}`, {
+          const res = await axios.get(`/admin/${localStorage.getItem('Id')}`, {
             headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
             },
           });
-
-          users = response.data.data;
-          users.reverse();
-          localStorage.setItem('total', users.length);
+          // Adjust for new response structure
+          users = res.data.data || [];
+          if (!users.length) {
+            mainContent.innerHTML = '<p>No users found.</p>';
+            return;
+          }
+          mainContent.innerHTML = `
+        <h2>All Users</h2>
+        <div class="dashboard-cards">
+          ${users
+            .map(
+              (user) => `
+            <div class="user-card">
+          <strong>${user.userName}</strong>
+          <ul class="user-details-list">
+            <li><b>Email:</b> ${user.email}</li>
+            <li><b>Mobile:</b> ${user.mobileNo}</li>
+          </ul>
+            </div>
+          `,
+            )
+            .join('')}
+        </div>
+          `;
         } catch (error) {
-          mainContent.innerHTML = `<h2>All Users</h2><p>Error loading users.</p>`;
-          return;
+          mainContent.innerHTML = '<p>Error loading users.</p>';
         }
-
-        let html = `<h2>All Users (${users.length})</h2>`;
-
-        if (users.length === 0) {
-          html += `<p>No users created yet.</p>`;
-        } else {
-          users.forEach((user, index) => {
-            html += `
-              <div class="user-card">
-                <strong>#${index + 1}</strong><br>
-                Name: ${user.userName}<br>
-                Email: ${user.email}<br>
-                Mobile: ${user.mobileNo}<br>
-              </div>
-            `;
-          });
-        }
-
-        mainContent.innerHTML = html;
-      };
-
-      function logout() {
-        localStorage.clear();
-        alert('You have been logged out.');
-        window.location.href = '/loginadmin';
       }
-      updateUserCount();
+
+      // Initialization
+      window.addEventListener('DOMContentLoaded', async () => {
+        await checkSMTP();
+        updateSidebarMenu();
+        showDashboard();
+      });
     </script>
   </body>
 </html>
