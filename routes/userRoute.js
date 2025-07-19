@@ -8,26 +8,27 @@ import {
   userUpdatePasswordController,
 } from '../controllers/otpAdminController.js';
 import {
-  genrateEmail,
   sendMail,
   smptpsetup,
   verifysmtpController,
-  genrateStreamController,
   fetchUserEmailSendDetails,
 } from '../controllers/geminiController.js';
+import multer from 'multer';
+
 const routes = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 routes.post('/u/login', loginUserController);
 routes.post('/reset', authUser, passwordRest);
 routes.post('/send/otp', sendOtp);
 routes.post('/verify/otp', userOtpVerifyController);
 routes.put('/update/pass', userUpdatePasswordController);
-routes.post('/genratemail', authUser, genrateEmail);
-routes.get('/stream-email', genrateStreamController);
-routes.post('/sendmail', authUser, sendMail);
+
+// UPDATED: Add upload.array('attachments') for file support
+routes.post('/sendmail', authUser, upload.array('attachments'), sendMail);
+
 routes.post('/smtp', authUser, smptpsetup);
 routes.get('/smtp', authUser, verifysmtpController);
 routes.get('/email-history', authUser, fetchUserEmailSendDetails);
-// routes.get('verifytoken', authUser);
 
 export default routes;

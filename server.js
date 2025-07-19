@@ -6,10 +6,13 @@ import admin from './routes/adminRoute.js';
 import user from './routes/userRoute.js';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import { Server } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { connectBaseDB } from './config/connectBaseDb.js';
-
+import { createServer } from 'http';
+import { handleGeminiStream } from './controllers/geminiController.js';
 dotenv.config();
+
 const app = express();
 
 app.use(cookieParser());
@@ -21,6 +24,15 @@ app.use(
 );
 app.use(morgan('dev'));
 app.use(express.json());
+
+const server = createServer(app);
+
+const io = new Server(server);
+
+io.on('connection', (Socket) => {
+  console.log('socket.io connected successfully', Socket.id);
+  handleGeminiStream(Socket);
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -43,6 +55,7 @@ app.get('/email-history', (req, res) => res.render('email_history'));
 
 // DB + Routers
 connectBaseDB();
+
 app.use('/admin', admin);
 app.use('/user', user);
 
@@ -56,6 +69,6 @@ app.use((req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

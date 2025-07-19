@@ -1,4 +1,3 @@
-// services/authServices.js
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { loginUserConnectionBuild } from '../config/AdminDBManager.js';
@@ -7,6 +6,7 @@ import statusCode from '../utils/statusCode.js';
 import { successResponse, errorResponse } from '../utils/responseHelper.js';
 import message from '../utils/message.js';
 import Admin from '../models/AdminModel.js';
+import { encrypt, decrypt } from '../utils/Encrypt_decrypt.js';
 
 export const loginUserService = async (req, res) => {
   const { email, password, Id } = req.body;
@@ -69,12 +69,15 @@ export const loginAdminServices = async (req, res) => {
     }
     const existingUser = await Admin.findOne({ email }).select('+password');
     if (!existingUser) {
-      return errorResponse(
-        res,
-        statusCode.CONFLICT,
-        message.INVALID_CREDENTIALS,
-      );
+      return errorResponse(res, statusCode.CONFLICT, message.NOT_FOUND);
     }
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+    // ✅ Update in DB
+    existingUser.ipAddress = ip;
+    existingUser.lastLogin = new Date();
+    await existingUser.save();
+
     const isMatch = await bcrypt.compare(password, existingUser.password);
 
     if (!isMatch) {
@@ -106,17 +109,26 @@ export const loginAdminServices = async (req, res) => {
 
 export const updateSmtpServices = async (req, res) => {
   const { user, pass, host, port } = req.body;
+  console.log('comes inside smtp', req.body);
+
   try {
+    console.log('hey hello');
+    console.log('this is pass', pass);
+
+    const encryptPassData = encrypt(pass);
     const admin = await Admin.findById(req.params.id);
     if (!admin) {
       return errorResponse(res, statusCode.NOT_FOUND, message.NOT_FOUND);
     }
+    console.log('after encrypt');
 
     // Update smtp fields
     if (user !== undefined) admin.smtp.user = user;
-    if (pass !== undefined) admin.smtp.pass = pass;
+    if (pass !== undefined) admin.smtp.pass = encryptPassData;
     if (host !== undefined) admin.smtp.host = host;
     if (port !== undefined) admin.smtp.port = port;
+
+    console.log('hete34');
 
     await admin.save();
 

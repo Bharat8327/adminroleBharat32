@@ -5,9 +5,15 @@
     <title>Create Admin - Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
       rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
     />
     <style>
       * {
@@ -58,7 +64,7 @@
         border-radius: 8px;
         border: 1px solid #ccc;
         font-size: 1rem;
-        margin-bottom: 20px;
+        margin-bottom: 6px;
         transition: border 0.2s, box-shadow 0.2s;
       }
 
@@ -66,6 +72,12 @@
         border-color: #6a11cb;
         box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.1);
         outline: none;
+      }
+
+      .error-message {
+        color: red;
+        font-size: 0.9rem;
+        margin-bottom: 14px;
       }
 
       .password-wrapper {
@@ -104,6 +116,7 @@
         font-weight: bold;
         cursor: pointer;
         transition: background 0.3s ease;
+        margin-top: 10px;
       }
 
       .btn:hover:not(:disabled) {
@@ -167,6 +180,7 @@
         placeholder="Enter username"
         required
       />
+      <div class="error-message" id="userNameError"></div>
 
       <label for="email">Email</label>
       <input
@@ -176,6 +190,7 @@
         placeholder="Enter your email"
         required
       />
+      <div class="error-message" id="emailError"></div>
 
       <label for="mobile">Mobile</label>
       <input
@@ -186,6 +201,7 @@
         maxlength="10"
         required
       />
+      <div class="error-message" id="mobileError"></div>
 
       <label for="password">Password</label>
       <div class="password-wrapper">
@@ -198,6 +214,7 @@
         />
         <span class="toggle-password" onclick="togglePassword()">Show</span>
       </div>
+      <div class="error-message" id="passwordError"></div>
 
       <button type="submit" class="btn" id="updateBtn">Create Account</button>
 
@@ -219,15 +236,39 @@
         }
       }
 
+      function showToast(message, type = 'info') {
+        Toastify({
+          text: message,
+          duration: 3000,
+          gravity: 'top',
+          position: 'right',
+          backgroundColor:
+            type === 'success'
+              ? '#4BB543'
+              : type === 'error'
+              ? '#e74c3c'
+              : '#3498db',
+          stopOnFocus: true,
+        }).showToast();
+      }
+
+      function clearErrors() {
+        ['userName', 'email', 'mobile', 'password'].forEach((field) => {
+          document.getElementById(field + 'Error').textContent = '';
+        });
+      }
+
       document
         .getElementById('loginForm')
         .addEventListener('submit', async function (e) {
           e.preventDefault();
+          clearErrors();
+
           const form = e.target;
-          const userName = form.userName.value;
-          const email = form.email.value;
-          const mobile = form.mobile.value;
-          const password = form.password.value;
+          const userName = form.userName.value.trim();
+          const email = form.email.value.trim();
+          const mobile = form.mobile.value.trim();
+          const password = form.password.value.trim();
 
           const submitBtn = document.getElementById('updateBtn');
           submitBtn.disabled = true;
@@ -242,21 +283,29 @@
             });
 
             if (response.data.success) {
-              alert('Admin created successfully!');
+              showToast('Admin created successfully!', 'success');
               form.reset();
-              window.location.href = '/loginadmin';
+              setTimeout(() => {
+                window.location.href = '/loginadmin';
+              }, 1000);
             } else {
-              alert(response.data.message || 'Failed to create admin');
+              showToast(
+                response.data.message || 'Failed to create admin',
+                'error',
+              );
             }
           } catch (error) {
-            console.error('Creation Error:', error);
-            if (
-              error.response?.status === 409 ||
-              error.response?.data?.message
-            ) {
-              alert(error.response.data.message);
-            } else {
-              alert('Something went wrong during account creation');
+            const errMsg =
+              error.response?.data?.message || 'Something went wrong';
+            showToast(errMsg, 'error');
+
+            // Show real-time errors below inputs if available
+            if (error.response?.data?.errors) {
+              const errors = error.response.data.errors;
+              Object.keys(errors).forEach((key) => {
+                const el = document.getElementById(key + 'Error');
+                if (el) el.textContent = errors[key];
+              });
             }
           } finally {
             submitBtn.disabled = false;

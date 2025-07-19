@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>User Dashboard & Email Generator</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <link
@@ -10,6 +10,7 @@
       rel="stylesheet"
     />
     <style>
+      /* Root variables */
       :root {
         --primary: #6a11cb;
         --danger: #e53935;
@@ -18,37 +19,222 @@
         --border-radius: 16px;
         --shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
         --transition: 0.2s;
+
+        --text-color: #333;
+        --background-color: var(--gray-bg);
+        --card-text-color: #000;
+        --input-bg: #fafbfc;
+        --input-border: #ccc;
+        --select-placeholder-color: #888;
       }
-      * {
-        box-sizing: border-box;
+
+      /* Dark mode variables */
+      body.dark-mode {
+        --primary: #9c27b0;
+        --danger: #ef5350;
+        --gray-bg: #121212;
+        --card-bg: #1e1e1e;
+        --text-color: #eee;
+        --background-color: #121212;
+        --card-text-color: #eee;
+        --shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+        --input-bg: #2a2a2a;
+        --input-border: #555;
+        --toast-bg: #204d8b;
+        --toast-text: #fff;
+        --select-placeholder-color: #bbb;
       }
+
+      /* Apply colors */
       html,
       body {
         height: 100%;
         margin: 0;
         padding: 0;
         font-family: 'Public Sans', sans-serif;
-        background: var(--gray-bg);
+        background: var(--background-color);
+        color: var(--text-color);
+        transition: background var(--transition), color var(--transition);
+        height: 100vh;
+        overflow: hidden;
       }
+
       body {
-        min-height: 100vh;
         display: flex;
-        align-items: flex-start;
-        justify-content: center;
-        padding: 32px 8px;
+        flex-direction: column;
       }
-      .container {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 32px;
+
+      /* Navbar */
+      .navbar {
+        position: fixed;
+        height: 52px;
+        top: 0;
+        left: 0;
+        right: 0;
+
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        z-index: 10001;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        user-select: none;
+      }
+      .navbar-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .navbar-left .navbar-brand {
+        user-select: none;
+      }
+      .navbar-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 500;
+      }
+
+      /* Toggle Switch */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 36px;
+        height: 18px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 18px;
+      }
+      .slider:before {
+        position: absolute;
+        content: '';
+        height: 14px;
+        width: 14px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background-color: #4e0899;
+      }
+      input:checked + .slider:before {
+        transform: translateX(18px);
+      }
+
+      /* Layout: Sidebar + Main Content */
+      .layout {
+        display: flex;
+        height: calc(100vh - 30px); /* full height minus navbar */
+        margin-top: 30px; /* below navbar */
+        overflow: hidden;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: 240px;
+        background: var(--card-bg);
+        box-shadow: var(--shadow);
+        border-radius: 0 0 var(--border-radius) 0;
+        display: flex;
+        flex-direction: column;
+        padding-top: 24px;
+        user-select: none;
+        transition: background var(--transition), color var(--transition);
+        overflow-y: auto;
+        position: relative;
+        z-index: 1000;
+      }
+      body.dark-mode .sidebar {
+        background: var(--card-bg);
+        color: var(--card-text-color);
+      }
+      .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .sidebar li {
+        margin: 0;
+      }
+      .sidebar button {
         width: 100%;
-        max-width: 1200px;
+        padding: 14px 24px;
+        border: none;
+        background: none;
+        text-align: left;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        cursor: pointer;
+        border-left: 4px solid transparent;
+        transition: background var(--transition), color var(--transition),
+          border-color var(--transition);
       }
-      @media (min-width: 900px) {
-        .container {
-          grid-template-columns: 1fr 1fr;
-        }
+      .sidebar button:hover,
+      .sidebar button:focus {
+        background: var(--gray-bg);
+        outline: none;
       }
+      body.dark-mode .sidebar button:hover,
+      body.dark-mode .sidebar button:focus {
+        background: #2a2a2a;
+      }
+      .sidebar button.active {
+        border-left-color: var(--primary);
+        background: var(--gray-bg);
+        color: var(--primary);
+        font-weight: 700;
+      }
+      body.dark-mode .sidebar button.active {
+        background: #2a2a2a;
+        color: var(--primary);
+      }
+
+      /* Sidebar toggle button for small screens */
+      #sidebarToggle {
+        display: none;
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        color: white;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      /* Main Content */
+      .main-content {
+        flex: 1;
+        background: var(--background-color);
+        padding: 24px 32px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+        transition: margin-left 0.3s ease;
+        box-sizing: border-box;
+        max-width: 100%;
+      }
+
+      /* Cards and Sections */
       .card {
         background: var(--card-bg);
         border-radius: var(--border-radius);
@@ -58,7 +244,31 @@
         flex-direction: column;
         gap: 24px;
         min-width: 0;
+        color: var(--card-text-color);
+        transition: background var(--transition), color var(--transition),
+          box-shadow var(--transition);
+        box-sizing: border-box;
+        max-width: 100%;
       }
+
+      /* Fix input overflow */
+      input,
+      select,
+      textarea {
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      /* Hide all sections by default */
+      .section {
+        display: none;
+      }
+      /* Show active section */
+      .section.active {
+        display: block;
+      }
+
+      /* Info card styles */
       .info {
         display: flex;
         align-items: center;
@@ -75,6 +285,7 @@
         margin: 0;
         font-size: 1.5rem;
         font-weight: 600;
+        color: var(--card-text-color);
       }
       .info-details p {
         margin: 4px 0 0 0;
@@ -98,7 +309,7 @@
         flex-wrap: wrap;
       }
       .btn {
-        flex: 1 1 120px;
+        flex: 1 1;
         padding: 12px 0;
         font-weight: 600;
         border: none;
@@ -108,6 +319,7 @@
           box-shadow var(--transition);
         font-size: 1rem;
         outline: none;
+        box-sizing: border-box;
       }
       .btn-primary {
         background: var(--primary);
@@ -161,10 +373,11 @@
         padding: 12px 14px;
         font-size: 1rem;
         border-radius: 8px;
-        border: 1px solid #ccc;
-        background: #fafbfc;
+        border: 1px solid var(--input-border);
+        background: var(--input-bg);
         transition: border var(--transition), box-shadow var(--transition);
         outline: none;
+        color: var(--text-color);
       }
       input:focus,
       select:focus,
@@ -175,6 +388,15 @@
       textarea {
         min-height: 120px;
         resize: vertical;
+        color: var(--text-color);
+        background: var(--input-bg);
+      }
+      /* Fix for select placeholder color */
+      select {
+        color: var(--text-color);
+      }
+      select option[disabled][selected] {
+        color: var(--select-placeholder-color);
       }
       .toggle-password {
         position: absolute;
@@ -190,12 +412,16 @@
       }
       .video-container {
         margin-top: 18px;
+        display: none; /* Hidden by default, shown only in SMTP section */
+      }
+      .video-container.active {
         display: block;
       }
       .video-container label {
         font-weight: 600;
         margin-bottom: 8px;
         display: block;
+        color: var(--card-text-color);
       }
       .video-container iframe {
         width: 100%;
@@ -216,6 +442,7 @@
         margin: 0 0 10px 0;
         font-size: 1.2rem;
         font-weight: 600;
+        color: var(--card-text-color);
       }
       .history-list {
         margin-top: 8px;
@@ -231,6 +458,12 @@
         padding: 12px 16px;
         border-radius: 8px;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        color: var(--text-color);
+      }
+      body.dark-mode .history-card {
+        background: #2a2a2a;
+        border-left-color: var(--primary);
+        color: var(--card-text-color);
       }
       .history-card h4 {
         margin: 0 0 4px 0;
@@ -238,10 +471,16 @@
         color: #333;
         font-weight: 600;
       }
+      body.dark-mode .history-card h4 {
+        color: var(--card-text-color);
+      }
       .history-card p {
         margin: 2px 0;
         font-size: 0.95rem;
         color: #555;
+      }
+      body.dark-mode .history-card p {
+        color: #ccc;
       }
       /* Modal */
       .modal {
@@ -263,219 +502,592 @@
         width: 95vw;
         max-width: 400px;
         box-shadow: var(--shadow);
+        color: var(--text-color);
       }
+      body.dark-mode .modal-content {
+        background: var(--card-bg);
+        color: var(--card-text-color);
+      }
+
+      #cancelSMTPBtn {
+        margin-top: 10px;
+      }
+
       /* Responsive tweaks */
       @media (max-width: 600px) {
-        .card,
-        .modal-content {
-          padding: 18px 8px;
+        /* Sidebar toggle button visible */
+        #sidebarToggle {
+          display: inline-block;
         }
-        .avatar {
-          width: 56px;
-          height: 56px;
+
+        .layout {
+          flex-direction: column;
+          height: auto;
+          margin-top: 30px;
         }
-        .container {
-          gap: 18px;
+
+        .sidebar {
+          position: fixed;
+          top: 30px;
+          left: 0;
+          bottom: 0;
+          width: 100%;
+          max-width: 100%;
+          background: var(--card-bg);
+          box-shadow: var(--shadow);
+          border-radius: 0 0 var(--border-radius) 0;
+          transform: translateX(-100%);
+          transition: transform 0.3s ease;
+          z-index: 10000;
+          overflow-y: auto;
+        }
+        .sidebar.open {
+          transform: translateX(0);
+        }
+
+        body.dark-mode .sidebar {
+          background: var(--card-bg);
+          color: var(--card-text-color);
+        }
+
+        .sidebar ul {
+          display: flex;
+          flex-direction: column;
+          padding: 0;
+          margin: 0;
+        }
+
+        .sidebar button {
+          padding: 14px 20px;
+          font-size: 1rem;
+        }
+
+        .main-content {
+          padding: 16px 16px 80px;
+          height: calc(100vh - 30px);
+          overflow-y: auto;
+          margin-left: 0;
+          transition: margin-left 0.3s ease;
+          max-width: 100%;
+        }
+
+        /* When sidebar open, push main content */
+        .sidebar.open ~ .main-content {
+          margin-left: 0;
         }
       }
-      @media (max-width: 400px) {
-        .modal-content {
-          padding: 10px 2vw;
+
+      @media (min-width: 601px) and (max-width: 900px) {
+        /* Sidebar toggle button visible */
+        #sidebarToggle {
+          display: inline-block;
+        }
+
+        .layout {
+          flex-direction: row;
+          height: calc(100vh - 30px);
+          margin-top: 30px;
+        }
+
+        .sidebar {
+          position: fixed;
+          top: 30px;
+          left: 0;
+          bottom: 0;
+          width: 230px; /* fixed width for tablet */
+          max-width: 230px;
+          background: var(--card-bg);
+          box-shadow: var(--shadow);
+          border-radius: 0 0 var(--border-radius) 0;
+          transform: translateX(-100%);
+          transition: transform 0.3s ease;
+          z-index: 10000;
+          overflow-y: auto;
+        }
+        .sidebar.open {
+          transform: translateX(0);
+        }
+
+        body.dark-mode .sidebar {
+          background: var(--card-bg);
+          color: var(--card-text-color);
+        }
+
+        .sidebar ul {
+          display: flex;
+          flex-direction: column;
+          padding: 0;
+          margin: 0;
+        }
+
+        .sidebar button {
+          padding: 14px 20px;
+          font-size: 1rem;
+        }
+
+        .main-content {
+          padding: 16px 16px 80px;
+          height: calc(100vh - 30px);
+          overflow-y: auto;
+          margin-left: 0;
+          transition: margin-left 0.3s ease;
+          max-width: 100%;
+        }
+
+        /* When sidebar open, push main content */
+        .sidebar.open ~ .main-content {
+          margin-left: 230px;
+        }
+      }
+
+      @media (min-width: 901px) {
+        #sidebarToggle {
+          display: none;
+        }
+
+        .layout {
+          flex-direction: row;
+          height: calc(100vh - 30px);
+          margin-top: 30px;
+        }
+
+        .sidebar {
+          position: relative;
+          width: 240px;
+          max-width: 240px;
+          transform: translateX(0);
+          box-shadow: var(--shadow);
+          border-radius: 0 0 var(--border-radius) 0;
+          overflow-y: auto;
+        }
+
+        .main-content {
+          padding: 24px 32px;
+          margin-left: 240px;
+          height: calc(100vh - 30px);
+          overflow-y: auto;
+          max-width: calc(100% - 240px);
         }
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <!-- LEFT CARD -->
-      <div class="card">
-        <div class="info">
-          <div class="avatar"></div>
-          <div class="info-details">
-            <h2 id="userName">Loading...</h2>
-            <p id="userEmail">user@example.com</p>
-            <span class="status">Pro Member</span>
-          </div>
-        </div>
-        <div class="actions">
-          <button class="btn btn-primary" id="openPasswordModal">
-            Update Password
-          </button>
-          <button class="btn btn-secondary" id="openSMTPModal">
-            Setup/Update SMTP
-          </button>
-          <button class="btn btn-danger" id="logoutBtn">Logout</button>
-        </div>
-        <p class="success-msg" id="passSuccess">
-          Password updated successfully!
-        </p>
-        <p class="success-msg" id="smtpSuccess">SMTP credentials saved!</p>
-        <div class="error-msg" id="smtpApiError"></div>
-        <div class="video-container" id="helpVideo">
-          <label>Setup SMTP password</label>
-          <iframe
-            src="https://www.youtube-nocookie.com/embed/ZfEK3WP73eY?si=BDXP_G0VaVZyaZGg"
-            title="How to find SMTP credentials"
-            allowfullscreen
-          ></iframe>
-        </div>
-        <!-- Email History -->
-        <div class="email-history" id="emailHistory">
-          <h3>Email History</h3>
-          <div id="emailHistoryList" class="history-list"></div>
-        </div>
+    <!-- Navbar -->
+    <nav class="navbar" role="banner">
+      <div class="navbar-left">
+        <button
+          id="sidebarToggle"
+          aria-label="Toggle sidebar menu"
+          title="Toggle sidebar"
+          aria-expanded="false"
+          aria-controls="sidebarNav"
+        >
+          ☰
+        </button>
+        <span class="navbar-brand">User Dashboard</span>
       </div>
-      <!-- RIGHT CARD -->
-      <div class="card">
-        <form id="smtpForm">
-          <h3>Setup SMTP Credentials</h3>
-          <div class="form-group">
-            <input
-              type="text"
-              id="smtpHost"
-              placeholder="SMTP Host"
-              value="smtp.gmail.com"
-              readonly
-            />
-            <div class="error-msg" id="smtpHostError"></div>
-          </div>
-          <div class="form-group">
-            <input
-              type="text"
-              id="smtpPort"
-              placeholder="Port"
-              value="465"
-              readonly
-            />
-            <div class="error-msg" id="smtpPortError"></div>
-          </div>
-          <div class="form-group">
-            <input type="email" id="smtpUser" placeholder="Your email" />
-            <div class="error-msg" id="smtpUserError"></div>
-          </div>
-          <div class="form-group">
-            <input type="password" id="smtpPass" placeholder="SMTP Password" />
+      <div class="navbar-right">
+        <span id="navUserName">User</span>
+        <label class="switch" title="Toggle dark mode">
+          <input type="checkbox" id="modeToggle" />
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </nav>
+
+    <div class="layout">
+      <!-- Sidebar -->
+      <nav
+        class="sidebar"
+        aria-label="Sidebar navigation"
+        id="sidebarNav"
+        tabindex="-1"
+      >
+        <ul>
+          <li>
             <button
+              class="active"
+              data-target="dashboardSection"
               type="button"
-              class="toggle-password"
-              onclick="togglePassword('smtpPass', this)"
+              id="dashboardBtn"
             >
-              👁
+              Dashboard
             </button>
-            <div class="error-msg" id="smtpPassError"></div>
-          </div>
-          <button type="submit" class="btn btn-primary btn-full">
-            Save SMTP Credentials
-          </button>
-          <button
-            type="button"
-            class="btn btn-secondary btn-full hidden"
-            id="cancelSMTPBtn"
-          >
-            Cancel Update
-          </button>
-          <p class="success-msg" id="smtpGetSuccess">
-            SMTP loaded successfully!
-          </p>
-          <div class="error-msg" id="smtpFormApiError"></div>
-        </form>
-        <!-- Email Generator -->
-        <div id="emailSection" class="hidden">
-          <h3>📧 Gemini Email Generator</h3>
-          <div class="form-group">
-            <input
-              type="text"
-              id="topic"
-              placeholder="Enter topic for the email"
-            />
-            <div class="error-msg" id="topicError"></div>
-          </div>
-          <div class="form-group">
-            <select id="emailTone" aria-label="Select email tone">
-              <option value="" disabled selected>Select email tone</option>
-              <option value="formal">Formal</option>
-              <option value="informal">Informal</option>
-              <option value="persuasive">Persuasive</option>
-              <option value="friendly">Friendly</option>
-            </select>
-            <div class="error-msg" id="emailToneError"></div>
-          </div>
-          <button
-            class="btn btn-secondary btn-full"
-            id="generateEmailBtn"
-            onclick="generateEmail()"
-          >
-            Generate Email
-          </button>
-          <div class="form-group">
-            <label>Receiver Address</label>
-            <input type="email" id="toEmail" placeholder="Your email address" />
-            <div class="error-msg" id="toEmailError"></div>
-          </div>
-          <div class="form-group">
-            <label>Subject</label>
-            <input type="text" id="subject" placeholder="Subject" />
-            <div class="error-msg" id="subjectError"></div>
-          </div>
-          <div class="form-group">
-            <label for="emailContent">Generated Email</label>
-            <textarea
-              id="emailContent"
-              rows="14"
-              placeholder="Generated content ."
-            ></textarea>
-            <small
-              >Make sure to keep <code>&lt;pre&gt;...&lt;/pre&gt;</code> tags
-              for formatting.</small
+          </li>
+          <li>
+            <button
+              data-target="emailGeneratorSection"
+              type="button"
+              id="emailGeneratorBtn"
+              style="display: none"
             >
+              Email Generator
+            </button>
+          </li>
+          <li>
+            <button
+              data-target="updatePasswordSection"
+              type="button"
+              id="updatePasswordBtnSidebar"
+            >
+              Update Password
+            </button>
+          </li>
+          <li>
+            <button
+              data-target="smtpSetupSection"
+              type="button"
+              id="smtpSetupBtnSidebar"
+            >
+              Setup/Update SMTP
+            </button>
+          </li>
+          <li>
+            <button
+              data-target="emailHistorySection"
+              type="button"
+              id="emailHistoryBtn"
+              style="display: none"
+            >
+              Email History
+            </button>
+          </li>
+          <li>
+            <button id="logoutBtnSidebar" type="button" class="btn-danger">
+              Logout
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Main content -->
+      <main class="main-content" id="mainContent" tabindex="-1">
+        <!-- Dashboard Section -->
+        <section
+          id="dashboardSection"
+          class="section active"
+          tabindex="0"
+          aria-label="Dashboard"
+        >
+          <div class="card">
+            <div class="info">
+              <div class="avatar" aria-hidden="true"></div>
+              <div class="info-details">
+                <h2 id="userName">Loading...</h2>
+                <p id="userEmail">user@example.com</p>
+                <span class="status">Pro Member</span>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn btn-primary" id="openPasswordModalSidebar">
+                Update Password
+              </button>
+              <button class="btn btn-secondary" id="openSMTPModalSidebar">
+                Setup/Update SMTP
+              </button>
+            </div>
+            <p class="success-msg" id="passSuccess">
+              Password updated successfully!
+            </p>
+            <p class="success-msg" id="smtpSuccess">SMTP credentials saved!</p>
+            <div class="error-msg" id="smtpApiError"></div>
+            <!-- NO video here as requested -->
           </div>
-          <button
-            class="btn btn-primary btn-full"
-            id="sendEmailBtn"
-            onclick="sendEmail()"
-          >
-            Send to My Email
-          </button>
-          <div id="sendError" class="error-msg"></div>
-          <div id="sendSuccess" class="success-msg"></div>
-        </div>
-      </div>
+        </section>
+
+        <!-- Email Generator Section -->
+        <section
+          id="emailGeneratorSection"
+          class="section"
+          tabindex="0"
+          aria-label="Email Generator"
+        >
+          <div class="card">
+            <h3>📧 Gemini Email Generator</h3>
+            <div class="form-group">
+              <input
+                type="text"
+                id="topic"
+                placeholder="Enter topic for the email"
+                autocomplete="off"
+                aria-describedby="topicError"
+              />
+              <div class="error-msg" id="topicError" role="alert"></div>
+            </div>
+            <div class="form-group">
+              <select
+                id="emailTone"
+                aria-label="Select email tone"
+                aria-describedby="emailToneError"
+              >
+                <option value="" disabled selected>Select email tone</option>
+                <option value="formal">Formal</option>
+                <option value="informal">Informal</option>
+                <option value="persuasive">Persuasive</option>
+                <option value="friendly">Friendly</option>
+              </select>
+              <div class="error-msg" id="emailToneError" role="alert"></div>
+            </div>
+            <button
+              class="btn btn-secondary btn-full"
+              id="generateEmailBtn"
+              type="button"
+              onclick="generateEmail()"
+            >
+              Generate Email
+            </button>
+            <div class="form-group">
+              <label for="toEmail">Receiver Address</label>
+              <input
+                type="email"
+                id="toEmail"
+                placeholder="Your email address"
+                autocomplete="email"
+                aria-describedby="toEmailError"
+              />
+              <div class="error-msg" id="toEmailError" role="alert"></div>
+            </div>
+            <div class="form-group">
+              <label for="subject">Subject</label>
+              <input
+                type="text"
+                id="subject"
+                placeholder="Subject"
+                autocomplete="off"
+                aria-describedby="subjectError"
+              />
+              <div class="error-msg" id="subjectError" role="alert"></div>
+            </div>
+            <div class="form-group">
+              <label for="emailContent">Generated Email</label>
+              <textarea
+                id="emailContent"
+                rows="14"
+                placeholder="Generated content."
+              ></textarea>
+            </div>
+            <div class="form-group">
+              <label for="attachments">Attachments (optional)</label>
+              <input type="file" id="attachments" multiple />
+            </div>
+            <button
+              class="btn btn-primary btn-full"
+              id="sendEmailBtn"
+              type="button"
+              onclick="sendEmail()"
+            >
+              Send to My Email
+            </button>
+            <div id="sendError" class="error-msg" role="alert"></div>
+            <div id="sendSuccess" class="success-msg"></div>
+          </div>
+        </section>
+
+        <!-- Update Password Section -->
+        <section
+          id="updatePasswordSection"
+          class="section"
+          tabindex="0"
+          aria-label="Update Password"
+        >
+          <div class="card">
+            <h3>Update Password</h3>
+            <div class="form-group">
+              <input
+                type="password"
+                id="newPassword"
+                minlength="6"
+                autocomplete="new-password"
+                placeholder="New password"
+                aria-describedby="newPasswordError"
+              />
+              <button
+                class="toggle-password"
+                onclick="togglePassword('newPassword', this)"
+                type="button"
+                aria-label="Toggle password visibility"
+              >
+                👁
+              </button>
+              <div class="error-msg" id="newPasswordError" role="alert"></div>
+            </div>
+            <div class="form-group">
+              <input
+                type="password"
+                id="confirmPassword"
+                minlength="6"
+                autocomplete="new-password"
+                placeholder="Confirm password"
+                aria-describedby="confirmPasswordError"
+              />
+              <button
+                class="toggle-password"
+                onclick="togglePassword('confirmPassword', this)"
+                type="button"
+                aria-label="Toggle password visibility"
+              >
+                👁
+              </button>
+              <div
+                class="error-msg"
+                id="confirmPasswordError"
+                role="alert"
+              ></div>
+            </div>
+            <div style="display: flex; gap: 10px">
+              <button
+                class="btn btn-secondary"
+                id="cancelUpdatePasswordBtn"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button class="btn btn-primary" id="updatePasswordBtn" disabled>
+                Update
+              </button>
+            </div>
+            <p class="success-msg" id="passSuccessInline">
+              Password updated successfully!
+            </p>
+          </div>
+        </section>
+
+        <!-- SMTP Setup Section -->
+        <section
+          id="smtpSetupSection"
+          class="section"
+          tabindex="0"
+          aria-label="SMTP Setup"
+        >
+          <div class="card">
+            <form id="smtpForm">
+              <h3>Setup SMTP Credentials</h3>
+              <div class="form-group">
+                <input
+                  type="text"
+                  id="smtpHost"
+                  placeholder="SMTP Host"
+                  value="smtp.gmail.com"
+                  readonly
+                  aria-describedby="smtpHostError"
+                />
+                <div class="error-msg" id="smtpHostError" role="alert"></div>
+              </div>
+              <div class="form-group">
+                <input
+                  type="text"
+                  id="smtpPort"
+                  placeholder="Port"
+                  value="465"
+                  readonly
+                  aria-describedby="smtpPortError"
+                />
+                <div class="error-msg" id="smtpPortError" role="alert"></div>
+              </div>
+              <div class="form-group">
+                <input
+                  type="email"
+                  id="smtpUser"
+                  placeholder="Your email"
+                  autocomplete="email"
+                  aria-describedby="smtpUserError"
+                />
+                <div class="error-msg" id="smtpUserError" role="alert"></div>
+              </div>
+              <div class="form-group">
+                <input
+                  type="password"
+                  id="smtpPass"
+                  placeholder="SMTP Password"
+                  autocomplete="new-password"
+                  aria-describedby="smtpPassError"
+                />
+                <button
+                  type="button"
+                  class="toggle-password"
+                  onclick="togglePassword('smtpPass', this)"
+                  aria-label="Toggle SMTP password visibility"
+                >
+                  👁
+                </button>
+                <div class="error-msg" id="smtpPassError" role="alert"></div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-full">
+                Save SMTP Credentials
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary btn-full hidden"
+                id="cancelSMTPBtn"
+              >
+                Cancel Update
+              </button>
+              <p class="success-msg" id="smtpGetSuccess">
+                SMTP loaded successfully!
+              </p>
+              <div class="error-msg" id="smtpFormApiError" role="alert"></div>
+            </form>
+            <div class="video-container active" id="smtpHelpVideo">
+              <label>Setup SMTP password</label>
+              <iframe
+                src="https://www.youtube-nocookie.com/embed/ZfEK3WP73eY?si=BDXP_G0VaVZyaZGg"
+                title="How to find SMTP credentials"
+                allowfullscreen
+              ></iframe>
+            </div>
+          </div>
+        </section>
+
+        <!-- Email History Section -->
+        <section
+          id="emailHistorySection"
+          class="section"
+          tabindex="0"
+          aria-label="Email History"
+        >
+          <div class="card email-history">
+            <h3>Email History</h3>
+            <div id="emailHistoryList" class="history-list"></div>
+          </div>
+        </section>
+      </main>
     </div>
-    <!-- Password Modal -->
-    <div class="modal" id="passwordModal">
+
+    <!-- Password Modal (kept for backward compatibility, hidden by default) -->
+    <div class="modal" id="passwordModal" aria-hidden="true">
       <div class="modal-content">
         <h3>Update Password</h3>
         <div class="form-group">
           <input
             type="password"
-            id="newPassword"
+            id="modalNewPassword"
             minlength="6"
             autocomplete="new-password"
             placeholder="New password"
           />
           <button
             class="toggle-password"
-            onclick="togglePassword('newPassword', this)"
+            onclick="togglePassword('modalNewPassword', this)"
           >
             👁
           </button>
-          <div class="error-msg" id="newPasswordError"></div>
+          <div class="error-msg" id="modalNewPasswordError"></div>
         </div>
         <div class="form-group">
           <input
             type="password"
-            id="confirmPassword"
+            id="modalConfirmPassword"
             minlength="6"
             autocomplete="new-password"
             placeholder="Confirm password"
           />
           <button
             class="toggle-password"
-            onclick="togglePassword('confirmPassword', this)"
+            onclick="togglePassword('modalConfirmPassword', this)"
           >
             👁
           </button>
-          <div class="error-msg" id="confirmPasswordError"></div>
+          <div class="error-msg" id="modalConfirmPasswordError"></div>
         </div>
         <div style="display: flex; gap: 10px">
           <button
@@ -484,62 +1096,153 @@
           >
             Cancel
           </button>
-          <button class="btn btn-primary" id="updatePasswordBtn" disabled>
+          <button class="btn btn-primary" id="modalUpdatePasswordBtn" disabled>
             Update
           </button>
         </div>
       </div>
     </div>
-    <!-- Keep your JS as is -->
+
+    <script src="/socket.io/socket.io.js"></script>
     <script>
+      const socket = io();
       const authToken = localStorage.getItem('token') || '';
-      const verify = 'patel';
-      document.getElementById('userName').textContent =
-        localStorage.getItem('userName') || 'User';
-      document.getElementById('userEmail').textContent =
+      const userNameFromStorage = localStorage.getItem('userName') || 'User';
+      const userEmailFromStorage =
         localStorage.getItem('email') || 'user@example.com';
 
-      function togglePassword(id, btn) {
-        const f = document.getElementById(id);
-        f.type = f.type === 'password' ? 'text' : 'password';
-        btn.textContent = f.type === 'password' ? '👁' : '🙈';
+      // Elements
+      const sidebar = document.getElementById('sidebarNav');
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const mainContent = document.getElementById('mainContent');
+      const emailGeneratorBtn = document.getElementById('emailGeneratorBtn');
+      const emailHistoryBtn = document.getElementById('emailHistoryBtn');
+      const smtpHelpVideo = document.getElementById('smtpHelpVideo');
+
+      // Set user info in navbar and dashboard
+      document.getElementById('userName').textContent = userNameFromStorage;
+      document.getElementById('userEmail').textContent = userEmailFromStorage;
+      document.getElementById('navUserName').textContent = userNameFromStorage;
+
+      // Dark/Light Mode Toggle
+      const modeToggle = document.getElementById('modeToggle');
+
+      if (localStorage.getItem('mode') === 'dark') {
+        document.body.classList.add('dark-mode');
+        modeToggle.checked = true;
       }
 
-      function closeModal(id) {
-        document.getElementById(id).style.display = 'none';
-      }
-      document.getElementById('passwordModal').onclick = (e) => {
-        if (e.target.id === 'passwordModal') closeModal('passwordModal');
-      };
-      document.getElementById('openPasswordModal').onclick = () => {
-        document.getElementById('newPassword').value = '';
-        document.getElementById('confirmPassword').value = '';
-        document.getElementById('updatePasswordBtn').disabled = true;
-        document.getElementById('passwordModal').style.display = 'flex';
+      modeToggle.addEventListener('change', () => {
+        if (modeToggle.checked) {
+          document.body.classList.add('dark-mode');
+          localStorage.setItem('mode', 'dark');
+        } else {
+          document.body.classList.remove('dark-mode');
+          localStorage.setItem('mode', 'light');
+        }
+      });
+
+      // Sidebar toggle for small screens
+      sidebarToggle.addEventListener('click', () => {
+        const expanded = sidebarToggle.getAttribute('aria-expanded') === 'true';
+        sidebarToggle.setAttribute('aria-expanded', !expanded);
+        sidebar.classList.toggle('open');
+      });
+
+      // Close sidebar on main content click (small screens)
+      mainContent.addEventListener('click', () => {
+        if (window.innerWidth <= 900 && sidebar.classList.contains('open')) {
+          sidebar.classList.remove('open');
+          sidebarToggle.setAttribute('aria-expanded', false);
+        }
+      });
+
+      // Sidebar navigation logic
+      const sidebarButtons = sidebar.querySelectorAll('button[data-target]');
+      const sections = document.querySelectorAll('.section');
+
+      sidebarButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          // Remove active class from all buttons
+          sidebarButtons.forEach((b) => b.classList.remove('active'));
+          // Add active to clicked button
+          btn.classList.add('active');
+
+          // Hide all sections
+          sections.forEach((sec) => sec.classList.remove('active'));
+
+          // Show target section
+          const targetId = btn.getAttribute('data-target');
+          const targetSection = document.getElementById(targetId);
+          if (targetSection) {
+            targetSection.classList.add('active');
+            // Focus main content for accessibility
+            mainContent.focus();
+          }
+
+          // Show video only in SMTP Setup section
+          if (targetId === 'smtpSetupSection') {
+            smtpHelpVideo.classList.add('active');
+          } else {
+            smtpHelpVideo.classList.remove('active');
+          }
+
+          // Close sidebar on small screen after selection
+          if (window.innerWidth <= 900) {
+            sidebar.classList.remove('open');
+            sidebarToggle.setAttribute('aria-expanded', false);
+          }
+        });
+      });
+
+      // Logout button in sidebar
+      document.getElementById('logoutBtnSidebar').onclick = () => {
+        localStorage.clear();
+        window.location = '/login';
       };
 
-      function clearPassErrors() {
+      // Dashboard buttons to open Update Password and SMTP Setup sections
+      document.getElementById('openPasswordModalSidebar').onclick = () => {
+        document
+          .querySelector('.sidebar button[data-target="updatePasswordSection"]')
+          .click();
+        clearPasswordInputs();
+      };
+
+      document.getElementById('openSMTPModalSidebar').onclick = () => {
+        document
+          .querySelector('.sidebar button[data-target="smtpSetupSection"]')
+          .click();
+        fetchSMTP();
+      };
+
+      // Password update section logic
+      const newPasswordInput = document.getElementById('newPassword');
+      const confirmPasswordInput = document.getElementById('confirmPassword');
+      const updatePasswordBtn = document.getElementById('updatePasswordBtn');
+      const passSuccessInline = document.getElementById('passSuccessInline');
+
+      function clearPasswordErrors() {
         document.getElementById('newPasswordError').textContent = '';
         document.getElementById('confirmPasswordError').textContent = '';
       }
 
       function validatePasswords() {
-        clearPassErrors();
-        const n = document.getElementById('newPassword').value.trim();
-        const c = document.getElementById('confirmPassword').value.trim();
+        clearPasswordErrors();
+        const n = newPasswordInput.value.trim();
+        const c = confirmPasswordInput.value.trim();
         document.getElementById('newPasswordError').textContent =
           n.length < 6 ? 'Must be 6+ chars.' : '';
         document.getElementById('confirmPasswordError').textContent =
           c !== n ? 'Passwords do not match' : '';
-        document.getElementById('updatePasswordBtn').disabled = !(
-          !c !== n && n.length >= 6
-        );
+        updatePasswordBtn.disabled = !(c === n && n.length >= 6);
       }
-      document.getElementById('newPassword').oninput = validatePasswords;
-      document.getElementById('confirmPassword').oninput = validatePasswords;
 
-      document.getElementById('updatePasswordBtn').onclick = async () => {
-        const pwd = document.getElementById('newPassword').value.trim();
+      newPasswordInput.oninput = validatePasswords;
+      confirmPasswordInput.oninput = validatePasswords;
+
+      updatePasswordBtn.onclick = async () => {
+        const pwd = newPasswordInput.value.trim();
         try {
           const res = await axios.post(
             '/user/reset',
@@ -547,19 +1250,34 @@
             { headers: { Authorization: `Bearer ${authToken}` } },
           );
           if (res.data.success) {
-            closeModal('passwordModal');
-            const msg = document.getElementById('passSuccess');
-            msg.style.display = 'block';
-            setTimeout(() => (msg.style.display = 'none'), 3000);
-          } else
+            passSuccessInline.style.display = 'block';
+            setTimeout(() => (passSuccessInline.style.display = 'none'), 3000);
+            clearPasswordInputs();
+          } else {
             document.getElementById('newPasswordError').textContent =
               res.data.message || 'Failed';
+          }
         } catch (err) {
           document.getElementById('newPasswordError').textContent =
             err.response?.data?.message || 'Error updating password.';
         }
       };
 
+      document.getElementById('cancelUpdatePasswordBtn').onclick = () => {
+        clearPasswordInputs();
+        document
+          .querySelector('.sidebar button[data-target="dashboardSection"]')
+          .click();
+      };
+
+      function clearPasswordInputs() {
+        newPasswordInput.value = '';
+        confirmPasswordInput.value = '';
+        clearPasswordErrors();
+        updatePasswordBtn.disabled = true;
+      }
+
+      // SMTP Setup form logic
       async function fetchSMTP() {
         document.getElementById('smtpApiError').textContent = '';
         try {
@@ -571,37 +1289,59 @@
               document.getElementById('smtpUser').value =
                 res.data.smtp.user || '';
             localStorage.setItem('smtp', 'true');
-            showEmail();
-            const msg = document.getElementById('smtpGetSuccess');
-            msg.style.display = 'block';
-            setTimeout(() => (msg.style.display = 'none'), 3000);
+            document.getElementById('smtpGetSuccess').style.display = 'block';
+            setTimeout(() => {
+              document.getElementById('smtpGetSuccess').style.display = 'none';
+            }, 3000);
+            emailGeneratorBtn.style.display = 'inline-block';
+            emailHistoryBtn.style.display = 'inline-block';
           } else {
-            showSMTP();
+            localStorage.removeItem('smtp');
+            clearSMTPForm();
+            emailGeneratorBtn.style.display = 'none';
+            emailHistoryBtn.style.display = 'none';
+            // Redirect if user is on email gen/history
+            const activeBtn = document.querySelector('.sidebar button.active');
+            if (
+              activeBtn === emailGeneratorBtn ||
+              activeBtn === emailHistoryBtn
+            ) {
+              document
+                .querySelector(
+                  '.sidebar button[data-target="dashboardSection"]',
+                )
+                .click();
+            }
           }
         } catch (err) {
           document.getElementById('smtpApiError').textContent =
             err.response?.data?.message || 'Could not fetch SMTP info.';
-          showSMTP();
+          localStorage.removeItem('smtp');
+          clearSMTPForm();
+          emailGeneratorBtn.style.display = 'none';
+          emailHistoryBtn.style.display = 'none';
+          const activeBtn = document.querySelector('.sidebar button.active');
+          if (
+            activeBtn === emailGeneratorBtn ||
+            activeBtn === emailHistoryBtn
+          ) {
+            document
+              .querySelector('.sidebar button[data-target="dashboardSection"]')
+              .click();
+          }
         }
       }
 
-      function showSMTP() {
-        document.getElementById('smtpForm').classList.remove('hidden');
-        document.getElementById('emailSection').classList.add('hidden');
-        document.getElementById('helpVideo').style.display = 'block';
+      function clearSMTPForm() {
+        document.getElementById('smtpUser').value = '';
+        document.getElementById('smtpPass').value = '';
+      }
+
+      document.getElementById('cancelSMTPBtn').onclick = () => {
         document
-          .getElementById('cancelSMTPBtn')
-          .classList.toggle('hidden', localStorage.getItem('smtp') !== 'true');
-      }
-
-      document.getElementById('openSMTPModal').onclick = showSMTP;
-      document.getElementById('cancelSMTPBtn').onclick = showEmail;
-
-      function showEmail() {
-        document.getElementById('smtpForm').classList.add('hidden');
-        document.getElementById('emailSection').classList.remove('hidden');
-        document.getElementById('helpVideo').style.display = 'none';
-      }
+          .querySelector('.sidebar button[data-target="dashboardSection"]')
+          .click();
+      };
 
       document.getElementById('smtpForm').onsubmit = async (e) => {
         e.preventDefault();
@@ -645,15 +1385,18 @@
           if (res.data.success) {
             document.getElementById('smtpSuccess').style.display = 'block';
             localStorage.setItem('smtp', 'true');
-            showEmail();
-            setTimeout(
-              () =>
-                (document.getElementById('smtpSuccess').style.display = 'none'),
-              3000,
-            );
-          } else
+            setTimeout(() => {
+              document.getElementById('smtpSuccess').style.display = 'none';
+            }, 3000);
+            emailGeneratorBtn.style.display = 'inline-block';
+            emailHistoryBtn.style.display = 'inline-block';
+            document
+              .querySelector('.sidebar button[data-target="dashboardSection"]')
+              .click();
+          } else {
             document.getElementById('smtpFormApiError').textContent =
               res.data.message || 'Failed to save SMTP.';
+          }
         } catch (err) {
           document.getElementById('smtpFormApiError').textContent =
             err.response?.data?.message || 'Error saving SMTP credentials.';
@@ -662,120 +1405,109 @@
         }
       };
 
-      // generateEmail() and sendEmail() functions remain unchanged
+      // --- Gemini Email Generator using socket.io streaming ---
+      function updateStatus(msg, isError) {
+        const el = document.getElementById('sendError');
+        el.textContent = msg;
+        el.style.display = msg ? 'block' : 'none';
+        el.style.color = isError ? '#e53935' : '#219653';
+      }
 
-      // Gemini Email Generator with streaming (like ChatGPT)
-      // This function streams email content from the backend as it's generated.
-      // The backend should support GET /api/gemini/stream-email?topic=...&tone=... using Server-Sent Events (SSE).
-      // The topic and tone are taken from the input fields with IDs 'topic' and 'emailTone'.
-
-      async function generateEmail() {
-        // Clear previous errors and messages
-        ['topic', 'emailTone', 'toEmail', 'subject'].forEach(clearError);
-        ['sendError', 'sendSuccess'].forEach(
-          (id) => (document.getElementById(id).textContent = ''),
-        );
-
-        // Get topic and tone from input fields
+      function generateEmail() {
         const topic = document.getElementById('topic').value.trim();
-        const tone = document.getElementById('emailTone').value;
-
-        if (!topic) {
-          setError('topic', 'Please enter a topic.');
-          return;
-        }
-        if (!tone) {
-          setError('emailTone', 'Please select a tone.');
-          return;
-        }
+        const tone = document.getElementById('emailTone').value.trim();
 
         const subjectInput = document.getElementById('subject');
-        const contentArea = document.getElementById('emailContent'); // textarea
+        const contentArea = document.getElementById('emailContent');
+        const sendBtn = document.getElementById('sendEmailBtn');
         const generateBtn = document.getElementById('generateEmailBtn');
 
-        // Reset fields
+        if (!topic || !tone) {
+          updateStatus('Please fill both topic and tone fields', true);
+          return;
+        }
+
         subjectInput.value = '';
         contentArea.value = '';
+        sendBtn.disabled = true;
         generateBtn.disabled = true;
-        generateBtn.textContent = 'Generating...';
+        generateBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        updateStatus('Generating email in real-time...');
 
-        const url = `/user/stream-email?topic=${encodeURIComponent(
-          topic,
-        )}&tone=${encodeURIComponent(tone)}`;
-        const eventSource = new EventSource(url);
+        let cleanResponse = '';
 
-        let fullBody = '';
-        let subjectSet = false;
+        const onChunk = (chunk) => {
+          const filteredChunk = chunk
+            .replace(/json/g, '')
+            .replace(/\\/g, '')
+            .trim();
+          cleanResponse += filteredChunk;
+          contentArea.value = cleanResponse;
+        };
 
-        eventSource.onmessage = (event) => {
-          const chunk = event.data;
-
-          if (
-            !subjectSet &&
-            chunk.trim().startsWith('{') &&
-            chunk.includes('"subject"')
-          ) {
-            try {
-              const json = JSON.parse(chunk);
-              subjectInput.value = json.subject || '';
-
-              const plainBody = (json.body || '')
-                .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-                .replace(/<[^>]+>/g, '')
-                .replace(/\n\s*\n/g, '\n\n')
-                .trim();
-
-              // Wrap with <pre> before inserting
-              const preWrapped = `<pre>\n${plainBody}\n</pre>`;
-              contentArea.value = preWrapped;
-              fullBody = preWrapped;
-              subjectSet = true;
-            } catch (e) {
-              contentArea.value += chunk;
-            }
-          } else {
-            contentArea.value += chunk;
-            fullBody += chunk;
+        const onDone = (emailData) => {
+          try {
+            subjectInput.value = emailData.subject;
+            contentArea.value = emailData.body;
+            updateStatus('Email generated successfully!');
+            showToast('Email generated successfully!', 3000, () => {
+              sendBtn.disabled = false;
+              generateBtn.disabled = false;
+              generateBtn.innerHTML =
+                '<i class="fas fa-magic"></i> Generate Email';
+            });
+          } catch (err) {
+            console.error('Data handling error:', err);
+            updateStatus(
+              'Failed to process email response. Please try again.',
+              true,
+            );
+            sendBtn.disabled = false;
+            generateBtn.disabled = false;
+            generateBtn.innerHTML =
+              '<i class="fas fa-magic"></i> Generate Email';
+          } finally {
+            socket.off('email_chunk', onChunk);
+            socket.off('email_done', onDone);
+            socket.off('email_error', onError);
           }
         };
 
-        eventSource.onerror = (err) => {
-          eventSource.close();
-          setError('topic', 'Streaming failed. Please try again.');
+        const onError = (errMsg) => {
+          updateStatus(errMsg || 'Failed to generate email', true);
           generateBtn.disabled = false;
-          generateBtn.textContent = 'Generate Email';
+          generateBtn.innerHTML = '<i class="fas fa-magic"></i> Generate Email';
+
+          socket.off('email_chunk', onChunk);
+          socket.off('email_done', onDone);
+          socket.off('email_error', onError);
         };
 
-        eventSource.addEventListener('end', () => {
-          eventSource.close();
-          generateBtn.disabled = false;
-          generateBtn.textContent = 'Generate Email';
-        });
+        socket.on('email_chunk', onChunk);
+        socket.on('email_done', onDone);
+        socket.on('email_error', onError);
+
+        socket.emit('generate_email', { topic, tone });
       }
 
       async function sendEmail() {
         ['topic', 'emailTone', 'toEmail', 'subject'].forEach(clearError);
-        ['sendError', 'sendSuccess'].forEach(
-          (id) => (document.getElementById(id).textContent = ''),
-        );
+        ['sendError', 'sendSuccess'].forEach((id) => {
+          document.getElementById(id).textContent = '';
+          document.getElementById(id).style.display = 'none';
+        });
 
         const content = document.getElementById('emailContent').value.trim();
         const to = document.getElementById('toEmail').value.trim();
         const subject = document.getElementById('subject').value.trim();
-
-        if (
-          !content ||
-          !content.startsWith('<pre>') ||
-          !content.endsWith('</pre>')
-        ) {
-          setError(
-            'topic',
-            'Email content must be wrapped with <pre>...</pre> tags.',
-          );
-          return;
-        }
+        const files = document.getElementById('attachments').files;
 
         let valid = true;
+        if (!content) {
+          setError('topic', 'Email content is required.');
+          valid = false;
+        }
         if (!to) {
           setError('toEmail', 'Enter your email.');
           valid = false;
@@ -793,45 +1525,50 @@
         btn.disabled = true;
         btn.textContent = 'Sending...';
 
+        // Use FormData for file uploads
+        const formData = new FormData();
+        formData.append('toEmail', to);
+        formData.append('subject', subject);
+        formData.append('content', content);
+        for (let i = 0; i < files.length; i++) {
+          formData.append('attachments', files[i]);
+        }
+
         try {
-          const res = await axios.post(
-            '/user/sendmail',
-            {
-              toEmail: to,
-              subject: subject,
-              content: content, // ✅ send email with <pre>...content...</pre>
+          const res = await axios.post('/user/sendmail', formData, {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+              'Content-Type': 'multipart/form-data',
             },
-            {
-              headers: {
-                Authorization: `Bearer ${authToken}`,
-              },
-            },
-          );
+          });
 
           if (res.data.success) {
-            document.getElementById('sendSuccess').textContent =
-              res.data.message || 'Email sent successfully!';
-            document.getElementById('sendSuccess').style.display = 'block';
-
-            setTimeout(() => {
-              document.getElementById('sendSuccess').style.display = 'none';
-            }, 3000);
-
+            showToast(
+              res.data.message || 'Email sent successfully!',
+              3000,
+              () => {
+                btn.disabled = false;
+                btn.textContent = 'Send to My Email';
+              },
+            );
             ['topic', 'toEmail', 'subject'].forEach(
               (id) => (document.getElementById(id).value = ''),
             );
             document.getElementById('emailTone').selectedIndex = 0;
             document.getElementById('emailContent').value = '';
-            // Reload email history after sending
+            document.getElementById('attachments').value = ''; // clear file input
             loadEmailHistory();
           } else {
             document.getElementById('sendError').textContent =
               res.data.message || 'Failed to send email.';
+            document.getElementById('sendError').style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Send to My Email';
           }
         } catch (err) {
           document.getElementById('sendError').textContent =
             err.response?.data?.message || 'Error sending email.';
-        } finally {
+          document.getElementById('sendError').style.display = 'block';
           btn.disabled = false;
           btn.textContent = 'Send to My Email';
         }
@@ -858,7 +1595,6 @@
           const container = document.getElementById('emailHistoryList');
           container.innerHTML = '';
 
-          // Check for correct response structure
           const data =
             res.data && Array.isArray(res.data.data) ? res.data.data : [];
 
@@ -871,7 +1607,6 @@
             const card = document.createElement('div');
             card.className = 'history-card';
 
-            // Show up to last 3 subjects, most recent last
             const subjects = Array.isArray(entry.subjects)
               ? entry.subjects.slice(-3).join(', ')
               : '';
@@ -881,11 +1616,11 @@
               : 'N/A';
 
             card.innerHTML = `
-          <h4>${entry.recipientEmail}</h4>
-          <p><strong>Sent:</strong> ${entry.count} time(s)</p>
-          <p><strong>Recent Subjects:</strong> ${subjects || 'N/A'}</p>
-          <p><strong>Last Sent:</strong> ${date}</p>
-        `;
+              <h4>${entry.recipientEmail}</h4>
+              <p><strong>Sent:</strong> ${entry.count} time(s)</p>
+              <p><strong>Recent Subjects:</strong> ${subjects || 'N/A'}</p>
+              <p><strong>Last Sent:</strong> ${date}</p>
+            `;
 
             container.appendChild(card);
           });
@@ -895,11 +1630,33 @@
         }
       }
 
-      // Logout
-      document.getElementById('logoutBtn').onclick = () => {
-        localStorage.clear();
-        window.location = '/login';
-      };
+      // Toast notification with callback on hide
+      function showToast(message, duration = 3000, onHide) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => toast.classList.add('show'), 100);
+
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => {
+            toast.remove();
+            if (typeof onHide === 'function') onHide();
+          }, 300);
+        }, duration);
+      }
+
+      function togglePassword(id, btn) {
+        const f = document.getElementById(id);
+        f.type = f.type === 'password' ? 'text' : 'password';
+        btn.textContent = f.type === 'password' ? '👁' : '🙈';
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+      }
 
       // On page load, fetch SMTP and email history
       window.addEventListener('DOMContentLoaded', () => {

@@ -55,6 +55,8 @@ const adminSchema = new mongoose.Schema(
       user: { type: String },
       pass: { type: String, select: false },
     },
+    ipAddress: String,
+    lastLogin: Date,
   },
   { timestamps: true },
 );

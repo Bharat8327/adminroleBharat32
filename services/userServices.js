@@ -7,6 +7,7 @@ import message from '../utils/message.js';
 import Admin from '../models/AdminModel.js';
 import { USER_CREATED_TEMPLATE } from '../config/emailTemplate.js';
 import nodemailer from 'nodemailer';
+import { decrypt } from '../utils/Encrypt_decrypt.js';
 
 export const createUserForAdmin = async (req, res) => {
   try {
@@ -54,12 +55,13 @@ export const createUserForAdmin = async (req, res) => {
       mobileNo,
     });
 
+    const decryptedPass = decrypt(isExist.smtp.pass);
     let transport = nodemailer.createTransport({
       host: isExist.smtp.host,
       port: isExist.smtp.port,
       auth: {
         user: isExist.smtp.user,
-        pass: isExist.smtp.pass,
+        pass: decryptedPass,
       },
     });
 
@@ -105,7 +107,6 @@ export const createUserForAdmin = async (req, res) => {
 };
 
 export const getAllUsersForAdmin = async (adminId) => {
-
   const conn = await getAdminDBConnection(adminId);
   const User = UserModel(conn);
   const users = await User.find();

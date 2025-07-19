@@ -103,6 +103,7 @@
         text-decoration: none;
         font-weight: 500;
       }
+
       .forgot-password {
         text-align: end;
         margin-top: 4px;
@@ -116,6 +117,55 @@
 
       .forgot-password a:hover {
         text-decoration: underline;
+      }
+
+      /* ✅ TOAST STYLES */
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .toast {
+        padding: 14px 18px;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        min-width: 250px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        transform: translateY(-20px);
+        animation: fadeInUp 0.4s forwards;
+      }
+
+      .toast.success {
+        background: #2ecc71;
+      }
+
+      .toast.error {
+        background: #e74c3c;
+      }
+
+      .toast .close-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.1rem;
+        cursor: pointer;
+      }
+
+      @keyframes fadeInUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       @media (max-width: 480px) {
@@ -159,9 +209,11 @@
         />
         <span class="toggle-password" id="togglePassword">Show</span>
       </div>
+
       <p class="forgot-password">
         <a href="/forgot">Forgot password?</a>
       </p>
+
       <button type="submit" id="loginBtn">Login</button>
 
       <div class="link">
@@ -172,7 +224,25 @@
       </div>
     </form>
 
+    <!-- ✅ TOAST CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <script type="module">
+      const toastContainer = document.getElementById('toastContainer');
+
+      function showToast(message, type = 'error', duration = 3000) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+        <span>${message}</span>
+        <button class="close-btn" onclick="this.parentElement.remove()">×</button>
+      `;
+        toastContainer.appendChild(toast);
+        setTimeout(() => {
+          toast.remove();
+        }, duration);
+      }
+
       document
         .getElementById('loginForm')
         .addEventListener('submit', async (e) => {
@@ -183,7 +253,6 @@
           const password = form.password.value;
           const loginBtn = document.getElementById('loginBtn');
 
-          // Disable button during API call
           loginBtn.disabled = true;
           loginBtn.textContent = 'Logging in...';
 
@@ -202,25 +271,25 @@
               );
               localStorage.setItem('Id', response.data.data.user.id);
               localStorage.setItem('AdminId', response.data.data.user.adminId);
-              window.location.href = '/dashboard';
+              showToast('Login successful!', 'success');
+              setTimeout(() => {
+                window.location.href = '/dashboard';
+              }, 1200);
             } else {
-              alert(response.data.message || 'Login failed');
+              showToast(response.data.message || 'Login failed', 'error');
             }
           } catch (error) {
             console.error('Login Error', error);
-            if (error.response?.data?.message) {
-              alert(error.response.data.message);
-            } else {
-              alert('Something went wrong. Please try again.');
-            }
+            const msg =
+              error.response?.data?.message ||
+              'Something went wrong. Please try again.';
+            showToast(msg, 'error');
           } finally {
-            // Re-enable button
             loginBtn.disabled = false;
             loginBtn.textContent = 'Login';
           }
         });
 
-      // Show/Hide Password Toggle
       function togglePassword() {
         const passwordInput = document.getElementById('password');
         const toggle = document.getElementById('togglePassword');

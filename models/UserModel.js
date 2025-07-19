@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema({
       recipientEmail: { type: String, required: true },
       subjects: [String],
       count: { type: Number, default: 1 },
+      body: [String],
       lastSentAt: { type: Date, default: Date.now },
     },
   ],

@@ -18,15 +18,16 @@ const routes = express.Router();
 // admin create
 routes.post('/u/login', loginAdminController);
 routes.post('/create', AdminCreate);
+
 routes.put('/:id/smtp', authAdmin, updateSmtpController);
 routes.get('/:id/smtp', authAdmin, verifySmtpController);
 
 // create user
 routes.post('/:adminId/create', authAdmin, createUser);
-routes.get('/:adminId', authAdmin, getUser); // getAllUser
+routes.get('/:adminId', authAdmin, getUser); 
 routes.post('/forgotPasswd', sendOtp);
 routes.post('/verify/otp', otpVerifyController);
 routes.put('/update', updatePasswordController);
 
-routes.get('/', listAdmins); // list all admins
+routes.get('/', listAdmins); 
 export default routes;
