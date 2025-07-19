@@ -60,19 +60,20 @@ This project follows the **MVCS architecture**:
 ## 📁 Folder Structure
 project-root/
 │
-├── config/ # Database connections and global config
-├── controllers/ # Route logic (admin, user, email, auth)
-├── middlewares/ # JWT auth, role-based access, error handling
-├── models/ # Mongoose schemas for User, Admin, EmailLog, etc.
-├── routes/ # Express route definitions for APIs
-├── services/ # Business logic (Gemini API, SMTP email sending, OTP)
-├── utils/ # Helper functions, token handlers, validations
-├── views/ # Frontend (HTML, JS, CSS for user interface)
+├── config/          # Database connections and global config
+├── controllers/     # Route logic (admin, user, email, auth)
+├── middlewares/     # JWT auth, role-based access, error handling
+├── models/          # Mongoose schemas for User, Admin, EmailLog, etc.
+├── routes/          # Express route definitions for APIs
+├── services/        # Business logic (Gemini API, SMTP email sending, OTP)
+├── utils/           # Helper functions, token handlers, validations
+├── views/           # Frontend (HTML, JS, CSS for user interface)
 │
 ├── .gitignore
 ├── package.json
 ├── package-lock.json
-└── server.js # Main server entry point
+└── server.js        # Main server entry point
+
 
 
 This structure reflects the **MVCS** design:
