@@ -1245,7 +1245,7 @@
         const pwd = newPasswordInput.value.trim();
         try {
           const res = await axios.post(
-            '/user/reset',
+            'https://multitent-sys12.onrender.com/user/reset',
             { password: pwd },
             { headers: { Authorization: `Bearer ${authToken}` } },
           );
@@ -1378,7 +1378,7 @@
         btn.disabled = true;
         try {
           const res = await axios.post(
-            '/user/smtp',
+            'https://multitent-sys12.onrender.com/user/smtp',
             { host, port, user, pass },
             { headers: { Authorization: `Bearer ${authToken}` } },
           );
@@ -1535,12 +1535,16 @@
         }
 
         try {
-          const res = await axios.post('/user/sendmail', formData, {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-              'Content-Type': 'multipart/form-data',
+          const res = await axios.post(
+            'https://multitent-sys12.onrender.com/user/sendmail',
+            formData,
+            {
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+                'Content-Type': 'multipart/form-data',
+              },
             },
-          });
+          );
 
           if (res.data.success) {
             showToast(

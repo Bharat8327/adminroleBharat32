@@ -173,7 +173,7 @@
         try {
           const payload = userType === 'user' ? { email, Id } : { email };
           const endpoint =
-            userType === 'user' ? '/user/send/otp' : '/admin/forgotPasswd';
+            userType === 'user' ? 'https://multitent-sys12.onrender.com/user/send/otp' : 'https://multitent-sys12.onrender.com/admin/forgotPasswd';
           const res = await axios.post(endpoint, payload);
           if (res.data.success) {
             alert('OTP sent to your email');
@@ -199,7 +199,7 @@
 
         try {
           const endpoint =
-            userType === 'user' ? '/user/verify/otp' : '/admin/verify/otp';
+            userType === 'user' ? 'https://multitent-sys12.onrender.com/user/verify/otp' : 'https://multitent-sys12.onrender.com/admin/verify/otp';
           const res = await axios.post(endpoint, { email, otp, Id });
           if (res.data.success) {
             alert('OTP verified');

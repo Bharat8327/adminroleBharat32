@@ -491,7 +491,7 @@
         button.textContent = 'Creating...';
         try {
           const res = await axios.post(
-            `/admin/${localStorage.getItem('Id')}/create`,
+            `https://multitent-sys12.onrender.com/admin/${localStorage.getItem('Id')}/create`,
             {
               userName: document.getElementById('createUserName').value,
               email: document.getElementById('createEmail').value,

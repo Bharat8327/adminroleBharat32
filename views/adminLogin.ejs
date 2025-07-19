@@ -257,7 +257,7 @@
           loginBtn.textContent = 'Logging in...';
 
           try {
-            const response = await axios.post('/admin/u/login', {
+            const response = await axios.post('https://multitent-sys12.onrender.com/admin/u/login', {
               email,
               password,
             });
