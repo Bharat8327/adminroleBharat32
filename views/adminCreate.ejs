@@ -275,7 +275,7 @@
           submitBtn.textContent = 'Creating...';
 
           try {
-            const response = await axios.post('https://multitent-sys12.onrender.com/admin/create', {
+            const response = await axios.post('/admin/create', {
               userName,
               email,
               mobileNo: mobile,
