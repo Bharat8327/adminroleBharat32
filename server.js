@@ -30,13 +30,12 @@ const server = createServer(app);
 const io = new Server(server);
 
 io.on('connection', (Socket) => {
-  console.log('socket.io connected successfully', Socket.id);
+  // console.log('socket.io connected successfully', Socket.id);
   handleGeminiStream(Socket);
 });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-console.log(__filename, '  ', __dirname);
 
 // Setup EJS views
 app.set('view engine', 'ejs');
@@ -70,5 +69,5 @@ app.use((req, res) => {
 // Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  // console.log(`Server is running on http://localhost:${PORT}`);
 });

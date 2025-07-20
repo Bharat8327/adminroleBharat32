@@ -11,8 +11,6 @@ import { resetPasswordServices } from '../services/userServices.js';
 
 export const createUser = async (req, res) => {
   try {
-    console.log('comes inside createCOntroller');
-
     const user = await createUserForAdmin(req, res);
     return successResponse(res, statusCode.CREATED, message.USER_CREATED, user);
   } catch (error) {
@@ -27,12 +25,8 @@ export const getUser = async (req, res) => {
     if (!users || users.length === 0) {
       return successResponse(res, statusCode.OK, message.NOT_FOUND, []);
     }
-    console.log('comes', users);
-
     return successResponse(res, statusCode.OK, message.USERS_FETCHED, users);
   } catch (error) {
-    console.log('comes error');
-
     return errorResponse(res, statusCode.INTERNAL_ERROR, error.message);
   }
 };

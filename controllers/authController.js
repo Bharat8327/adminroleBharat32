@@ -14,8 +14,6 @@ export const loginAdminController = async (req, res) => {
 };
 
 export const updateSmtpController = async (req, res) => {
-  console.log('comes inside controller');
-
   await updateSmtpServices(req, res);
 };
 

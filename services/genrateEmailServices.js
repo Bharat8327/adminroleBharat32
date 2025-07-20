@@ -102,7 +102,6 @@ export const sendMailServices = async (req, res) => {
 
 export const fetchUserSentEmailServices = async (req, res) => {
   try {
-    console.log(req.user.emailHistory.length);
     const details = req.user.emailHistory;
     return successResponse(res, statusCode.OK, 'fetch successfully', details);
   } catch (error) {

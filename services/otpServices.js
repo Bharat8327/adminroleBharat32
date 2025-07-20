@@ -17,6 +17,7 @@ export const otpServices = async (req, res) => {
         const admin = await Admin.findOne({ email }).select(
           '+resetOtp +resetOtpExpireAt',
         );
+
         if (!admin) {
           return errorResponse(res, statusCode.NOT_FOUND, message.NOT_FOUND);
         }
@@ -27,7 +28,8 @@ export const otpServices = async (req, res) => {
         admin.resetOtp = hashedOtp;
         admin.resetOtpExpireAt = otpExpire;
 
-        await admin.save();
+        const data = await admin.save();
+
         const mailOption = {
           from: `"Patell" <${process.env.SENDER_EMAIL}>`,
           to: email,
@@ -37,7 +39,7 @@ export const otpServices = async (req, res) => {
             'http://localhost:4000/login',
           ),
         };
-        const create = await transporter.sendMail(mailOption);
+        await transporter.sendMail(mailOption);
         return successResponse(res, statusCode.OK, message.OTP, admin.email);
       } catch (error) {
         return errorResponse(res, statusCode.INTERNAL_ERROR, error.message);

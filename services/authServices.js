@@ -109,26 +109,17 @@ export const loginAdminServices = async (req, res) => {
 
 export const updateSmtpServices = async (req, res) => {
   const { user, pass, host, port } = req.body;
-  console.log('comes inside smtp', req.body);
-
   try {
-    console.log('hey hello');
-    console.log('this is pass', pass);
-
     const encryptPassData = encrypt(pass);
     const admin = await Admin.findById(req.params.id);
     if (!admin) {
       return errorResponse(res, statusCode.NOT_FOUND, message.NOT_FOUND);
     }
-    console.log('after encrypt');
-
     // Update smtp fields
     if (user !== undefined) admin.smtp.user = user;
     if (pass !== undefined) admin.smtp.pass = encryptPassData;
     if (host !== undefined) admin.smtp.host = host;
     if (port !== undefined) admin.smtp.port = port;
-
-    console.log('hete34');
 
     await admin.save();
 
@@ -151,8 +142,6 @@ export const updateSmtpServices = async (req, res) => {
 
 export const verifySmtpServices = async (req, res) => {
   try {
-    console.log('comes');
-
     const admin = await Admin.findById(req.params.id);
     if (!admin) {
       return errorResponse(res, statusCode.NOT_FOUND, message.NOT_FOUND);

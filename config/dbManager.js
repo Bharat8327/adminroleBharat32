@@ -37,7 +37,7 @@ export const getAdminDBConnection = async (adminId) => {
 
   const dbAdmin = checkConn.db.admin();
   const dbs = await dbAdmin.listDatabases();
-  console.log('dbs name', dbs.databases[0].name);
+  // console.log('dbs name', dbs.databases[0].name);
 
   await checkConn.close();
 

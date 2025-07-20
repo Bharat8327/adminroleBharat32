@@ -13,7 +13,6 @@ export const createAdmin = async (req, res) => {
       return errorResponse(res, statusCode.BAD_REQUEST, message.MISSING_FIELDS);
     }
     const Id = email.split('@')[0];
-    console.log(Id);
     // Check for existing email
     const isExist = await Admin.findOne({ email });
     if (isExist) {

@@ -108,7 +108,7 @@ export const USER_CREATED_TEMPLATE = `
                 </tr>
                 <tr>
                   <td>
-                    <a href="{{loginLink}}" class="button">Login to Your Account</a>
+                   <a href="https://multitent-sys12.onrender.com/login" class="button">Login to Your Account</a>
                   </td>
                 </tr>
               </table>
