@@ -24,10 +24,10 @@ routes.get('/:id/smtp', authAdmin, verifySmtpController);
 
 // create user
 routes.post('/:adminId/create', authAdmin, createUser);
-routes.get('/:adminId', authAdmin, getUser); 
+routes.get('/:adminId', authAdmin, getUser);
 routes.post('/forgotPasswd', sendOtp);
 routes.post('/verify/otp', otpVerifyController);
 routes.put('/update', updatePasswordController);
 
-routes.get('/', listAdmins); 
+routes.get('/', listAdmins);
 export default routes;
