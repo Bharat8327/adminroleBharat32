@@ -1039,15 +1039,32 @@
         </section>
 
         <!-- Email History Section -->
+        <!-- Insert this inside your Email History section (HTML part) -->
         <section
           id="emailHistorySection"
           class="section"
-          tabindex="0"
           aria-label="Email History"
+          tabindex="-1"
+          style="display: none"
         >
-          <div class="card email-history">
-            <h3>Email History</h3>
-            <div id="emailHistoryList" class="history-list"></div>
+          <h2>Email History</h2>
+          <div id="emailHistoryList" aria-live="polite"></div>
+
+          <!-- Expanded Email Detail View, hidden by default -->
+          <div
+            id="emailDetailView"
+            style="display: none; margin-top: 20px"
+            aria-live="polite"
+          >
+            <button
+              id="closeEmailDetailBtn"
+              class="btn btn-secondary"
+              style="float: right"
+            >
+              Close
+            </button>
+            <h4>Emails sent to <span id="detailRecipient"></span></h4>
+            <div id="emailDetailContent" style="margin-top: 16px"></div>
           </div>
         </section>
       </main>
@@ -1119,6 +1136,18 @@
       const emailHistoryBtn = document.getElementById('emailHistoryBtn');
       const smtpHelpVideo = document.getElementById('smtpHelpVideo');
 
+      // Email History section elements
+      const emailHistorySection = document.getElementById(
+        'emailHistorySection',
+      );
+      const emailHistoryList = document.getElementById('emailHistoryList');
+      const emailDetailView = document.getElementById('emailDetailView');
+      const emailDetailContent = document.getElementById('emailDetailContent');
+      const detailRecipient = document.getElementById('detailRecipient');
+      const closeEmailDetailBtn = document.getElementById(
+        'closeEmailDetailBtn',
+      );
+
       // Set user info in navbar and dashboard
       document.getElementById('userName').textContent = userNameFromStorage;
       document.getElementById('userEmail').textContent = userEmailFromStorage;
@@ -1157,26 +1186,32 @@
         }
       });
 
-      // Sidebar navigation logic
+      // Sidebar navigation logic with EMAIL HISTORY special handling
       const sidebarButtons = sidebar.querySelectorAll('button[data-target]');
       const sections = document.querySelectorAll('.section');
 
       sidebarButtons.forEach((btn) => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           // Remove active class from all buttons
           sidebarButtons.forEach((b) => b.classList.remove('active'));
           // Add active to clicked button
           btn.classList.add('active');
 
-          // Hide all sections
-          sections.forEach((sec) => sec.classList.remove('active'));
+          // Hide all sections and email detail view
+          sections.forEach((sec) => {
+            sec.style.display = 'none';
+            sec.classList.remove('active');
+          });
+          emailDetailView.style.display = 'none';
+          emailHistoryList.innerHTML = '';
 
           // Show target section
           const targetId = btn.getAttribute('data-target');
           const targetSection = document.getElementById(targetId);
           if (targetSection) {
+            targetSection.style.display = 'block';
             targetSection.classList.add('active');
-            // Focus main content for accessibility
+            // Focus main content for accessibility if needed
             mainContent.focus();
           }
 
@@ -1185,6 +1220,11 @@
             smtpHelpVideo.classList.add('active');
           } else {
             smtpHelpVideo.classList.remove('active');
+          }
+
+          // Load email history only when Email History section is activated
+          if (targetId === 'emailHistorySection') {
+            await loadEmailHistory();
           }
 
           // Close sidebar on small screen after selection
@@ -1405,7 +1445,7 @@
         }
       };
 
-      // --- Gemini Email Generator using socket.io streaming ---
+      // Gemini Email Generator using socket.io streaming
       function updateStatus(msg, isError) {
         const el = document.getElementById('sendError');
         el.textContent = msg;
@@ -1557,7 +1597,10 @@
             document.getElementById('emailTone').selectedIndex = 0;
             document.getElementById('emailContent').value = '';
             document.getElementById('attachments').value = ''; // clear file input
-            loadEmailHistory();
+            // Reload email history only if email history section active
+            if (emailHistorySection.classList.contains('active')) {
+              loadEmailHistory();
+            }
           } else {
             document.getElementById('sendError').textContent =
               res.data.message || 'Failed to send email.';
@@ -1583,7 +1626,41 @@
         document.getElementById(id).textContent = '';
       }
 
-      // Email History Loader
+      // --- Email History Expand Logic ---
+
+      // Render email detail view for a recipient
+      function showEmailDetails(entry) {
+        detailRecipient.textContent = entry.recipientEmail;
+        emailDetailContent.innerHTML = '';
+
+        entry.body.reverse();
+        entry.subjects.reverse();
+        // Render all subjects & bodies
+        for (let i = 0; i < entry.subjects.length; i++) {
+          const subj = entry.subjects[i];
+          const body = entry.body && entry.body[i] ? entry.body[i] : '';
+          const emailDiv = document.createElement('div');
+          emailDiv.style.borderBottom = '1px solid #eee';
+          emailDiv.style.padding = '12px 0';
+
+          emailDiv.innerHTML = `
+        <strong>Subject:</strong> ${subj}<br>
+        <strong>Body:</strong>
+        <pre style="white-space:pre-wrap;border-radius:6px;padding:8px;">${body}</pre>
+      `;
+
+          emailDetailContent.appendChild(emailDiv);
+        }
+
+        emailDetailView.style.display = 'block';
+        emailDetailView.scrollIntoView({ behavior: 'smooth' });
+      }
+
+      closeEmailDetailBtn.onclick = () => {
+        emailDetailView.style.display = 'none';
+      };
+
+      // Load email history only when user clicks sidebar Email History
       async function loadEmailHistory() {
         try {
           const res = await axios.get('/user/email-history', {
@@ -1592,23 +1669,34 @@
             },
           });
 
-          const container = document.getElementById('emailHistoryList');
-          container.innerHTML = '';
+          emailHistoryList.innerHTML = '';
+          emailDetailView.style.display = 'none';
 
           const data =
             res.data && Array.isArray(res.data.data) ? res.data.data : [];
 
           if (data.length === 0) {
-            container.innerHTML = '<p>No emails sent yet.</p>';
+            emailHistoryList.innerHTML = '<p>No emails sent yet.</p>';
             return;
           }
+
+          // Show the total number of emails sent on top
+          const totalCount = data.reduce(
+            (sum, entry) => sum + (entry.count || 0),
+            0,
+          );
+          const totalDiv = document.createElement('div');
+          totalDiv.innerHTML = `<strong>Total Emails Sent:</strong> ${totalCount}`;
+          totalDiv.style.marginBottom = '12px';
+          emailHistoryList.appendChild(totalDiv);
 
           data.forEach((entry) => {
             const card = document.createElement('div');
             card.className = 'history-card';
+            card.style.cursor = 'pointer';
 
             const subjects = Array.isArray(entry.subjects)
-              ? entry.subjects.slice(-3).join(', ')
+              ? entry.subjects.slice(-1).join(', ')
               : '';
 
             const date = entry.lastSentAt
@@ -1616,16 +1704,19 @@
               : 'N/A';
 
             card.innerHTML = `
-              <h4>${entry.recipientEmail}</h4>
-              <p><strong>Sent:</strong> ${entry.count} time(s)</p>
-              <p><strong>Recent Subjects:</strong> ${subjects || 'N/A'}</p>
-              <p><strong>Last Sent:</strong> ${date}</p>
-            `;
+          <h4>${entry.recipientEmail}</h4>
+          <p><strong>Sent:</strong> ${entry.count} time(s)</p>
+          <p><strong>Recent Subjects:</strong> ${subjects || 'N/A'}</p>
+          <p><strong>Last Sent:</strong> ${date}</p>
+          <span style="color:#1976d2;font-size:0.98em;">Click to view all emails &rarr;</span>
+        `;
 
-            container.appendChild(card);
+            card.onclick = () => showEmailDetails(entry);
+
+            emailHistoryList.appendChild(card);
           });
         } catch (err) {
-          document.getElementById('emailHistoryList').innerHTML =
+          emailHistoryList.innerHTML =
             '<p style="color:red">Failed to load email history.</p>';
         }
       }
@@ -1658,10 +1749,10 @@
         document.getElementById(id).style.display = 'none';
       }
 
-      // On page load, fetch SMTP and email history
+      // On page load, fetch SMTP only (no email history)
       window.addEventListener('DOMContentLoaded', () => {
         fetchSMTP();
-        loadEmailHistory();
+        // Do NOT call loadEmailHistory here to avoid showing history on other pages.
       });
     </script>
   </body>
