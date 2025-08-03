@@ -117,13 +117,10 @@ SMTP_PASS=your_email_password
 
 node server.js
 
-### Access App
-Visit: http://localhost:5000
 
-Admin and user interfaces are served from the views/ directory.
 
 ### 🌐 Live Demo
-https://mutlitent-43ds.com
+[https://multitent-sys12.onrender.com/login](https://multitent-sys12.onrender.com/login)
 
 ### 📌 Summary
 This project is designed to simulate a real-world SaaS platform:
